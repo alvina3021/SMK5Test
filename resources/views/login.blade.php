@@ -43,6 +43,11 @@
                 <input type="password" name="password" id="password"
                     class="w-full border border-gray-300 rounded-lg px-4 py-3.5 focus:outline-none focus:border-[#001F4C] focus:ring-1 focus:ring-[#001F4C] transition placeholder-gray-400"
                     placeholder="Masukkan Password" required>
+
+                {{-- TAMBAHKAN INI: Untuk menampilkan pesan error login --}}
+                @error('identity')
+                    <p class="text-red-500 text-sm mt-2 italic">{{ $message }}</p>
+                @enderror
             </div>
 
             {{-- INGAT SAYA & LUPA PASSWORD --}}
