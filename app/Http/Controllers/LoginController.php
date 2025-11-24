@@ -21,15 +21,15 @@ class LoginController extends Controller
             'password' => ['required'],
         ]);
 
-        // Coba login (disesuaikan nanti apakah pakai email atau nis)
-        // Untuk sementara kita anggap 'identity' adalah email agar cocok dengan tabel user
-        if (Auth::attempt(['email' => $request->identity, 'password' => $request->password])) {
+        // Coba login dengan email atau NIS
+        if (Auth::attempt(['email' => $request->identity, 'password' => $request->password]) ||
+            Auth::attempt(['nis' => $request->identity, 'password' => $request->password])) {
             $request->session()->regenerate();
-            return redirect()->intended('/'); // Redirect ke home setelah sukses
+            return redirect()->route('dashboard'); // Redirect ke dashboard setelah sukses
         }
 
         return back()->withErrors([
             'identity' => 'Detail login tidak valid.',
-        ]);
+        ])->onlyInput('identity');
     }
 }

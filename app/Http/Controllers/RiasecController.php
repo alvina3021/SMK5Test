@@ -4,50 +4,80 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\RiasecResult;
+use App\Models\RiasecResult; // Pastikan Model di-import
 
 class RiasecController extends Controller
 {
-    // 1. Halaman Instruksi (Landing Page)
+    /**
+     * Halaman Pintu Masuk (GATEKEEPER)
+     * Mengecek apakah user sudah mengerjakan atau belum.
+     */
     public function index()
     {
         $user = Auth::user();
+
+        // 1. CEK DATABASE: Apakah user ini sudah pernah mengerjakan?
+        $sudahMengerjakan = RiasecResult::where('user_id', $user->id)->exists();
+
+        // 2. LOGIKA PENGALIHAN
+        if ($sudahMengerjakan) {
+            // JIKA SUDAH: Langsung tampilkan view 'riasec_finish'
+            // Kita tidak perlu redirect ke route '/riasec/selesai' terpisah,
+            // cukup render view-nya di sini agar URL tetap '/riasec' tapi isinya halaman selesai.
+            return view('riasec_finish', compact('user'));
+        }
+
+        // JIKA BELUM: Tampilkan Halaman Instruksi
         return view('riasec', compact('user'));
     }
 
-    // 2. Halaman Form (Pertanyaan)
+    /**
+     * Halaman Form (Pertanyaan)
+     */
     public function form()
     {
         $user = Auth::user();
+
+        // PROTEKSI: Jika user iseng tembak URL /riasec/tes padahal sudah selesai
+        $sudahMengerjakan = RiasecResult::where('user_id', $user->id)->exists();
+        if ($sudahMengerjakan) {
+            return redirect()->route('riasec.index'); // Tendang balik ke index (yang akan menampilkan finish)
+        }
+
         return view('riasec_form', compact('user'));
     }
 
-    // 3. Proses Simpan Data
+    /**
+     * Proses Simpan Data
+     */
     public function store(Request $request)
     {
-        // 1. Ambil semua jawaban soal (kecuali token CSRF)
-        // Karena tidak ada input 'kelas' di form, $data ini murni isinya jawaban soal (ans_realistic_0, dst).
+        // 1. Ambil data jawaban
         $answers = $request->except('_token');
 
-        // 2. Tentukan Nilai Kelas Secara Otomatis (Backend Logic)
-        // Logika: Coba ambil dari Auth::user()->kelas.
-        // Jika null/tidak ada, pakai default value '-' agar tidak error SQL.
+        // 2. Tentukan Nilai Kelas
         $kelasOtomatis = Auth::user()->kelas ?? '-';
 
-        // C. Simpan ke Database
+        // 3. Simpan ke Database
         RiasecResult::create([
             'user_id' => Auth::id(),
-            'kelas'   => $kelasOtomatis, // Diisi otomatis oleh sistem
-            'answers' => $answers,       // Array jawaban (pastikan cast 'array' ada di Model)
+            'kelas'   => $kelasOtomatis,
+            'answers' => $answers,
         ]);
 
-
-        // D. Redirect
-        return redirect()->route('riasec.finish');
+        // 4. REDIRECT KE INDEX (PENTING)
+        // Kita kembalikan ke route 'riasec.index'.
+        // Karena data baru saja disimpan, maka saat method index() dijalankan,
+        // ia akan mendeteksi data sudah ada dan otomatis menampilkan view 'riasec_finish'.
+        return redirect()->route('riasec.index');
     }
 
-    // 4. Halaman Selesai
-   public function finish()
+    /**
+     * Method finish() opsional.
+     * Jika kamu menggunakan logika di index(), method ini sebenarnya tidak dipakai lagi.
+     * Tapi boleh dibiarkan jika ingin diakses manual.
+     */
+    public function finish()
     {
         $user = Auth::user();
         return view('riasec_finish', compact('user'));

@@ -4,38 +4,97 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Carbon; // Import Carbon untuk manipulasi waktu
+
+// Import Semua Model
+use App\Models\SiswaData;
+use App\Models\RiasecResult;
+use App\Models\MotivasiBelajarResult;
+use App\Models\StudiHabitResult;
+use App\Models\SosialEmosionalResult;
+use App\Models\PreferensiKelompok;
 
 class DashboardController extends Controller
 {
     public function index()
     {
+        // 1. Ambil User Login
         $user = Auth::user();
+        $userId = $user->id;
 
-        // Data dummy status tes
-        $status_tes = [
-            'total_sesi' => 8, // Total sesi disesuaikan dengan 8 kartu
-            'sesi_selesai' => 3,
-        ];
+        // -----------------------------------------------------------
+        // BAGIAN 1: CEK STATUS (Untuk Warna Tombol)
+        // -----------------------------------------------------------
+        $statusDataPribadi     = SiswaData::where('user_id', $userId)->exists();
+        $statusRiasec          = RiasecResult::where('user_id', $userId)->exists();
+        $statusMotivasi        = MotivasiBelajarResult::where('user_id', $userId)->exists();
+        $statusStudiHabit      = StudiHabitResult::where('user_id', $userId)->exists();
+        $statusSosialEmosional = SosialEmosionalResult::where('user_id', $userId)->exists();
+        $statusPreferensi      = PreferensiKelompok::where('user_id', $userId)->exists();
 
-        // Data kartu menu
-        $menu_items = [
-            ['title' => 'Tes Minat', 'desc' => 'Mulai asesmen minat Anda.', 'icon' => 'M'],
-            ['title' => 'Tes Bakat', 'desc' => 'Mulai asesmen bakat Anda.', 'icon' => 'B'],
-            ['title' => 'Tes Gaya Belajar', 'desc' => 'Kenali cara belajar terbaik.', 'icon' => 'G'],
-            ['title' => 'Tes Multiple Intelligences', 'desc' => 'Ukur potensi kecerdasan.', 'icon' => 'I'],
-            ['title' => 'Materi Jurusan', 'desc' => 'Lihat deskripsi dan prospek.', 'icon' => 'J'],
-            ['title' => 'Materi Karier', 'desc' => 'Peta jalan karier masa depan.', 'icon' => 'K'],
-            ['title' => 'Rekomendasi', 'desc' => 'Lihat hasil rekomendasi final.', 'icon' => 'R'],
-            ['title' => 'Lihat Hasil Tes', 'desc' => 'Lihat riwayat dan skor tes.', 'icon' => 'H'],
-        ];
+        // -----------------------------------------------------------
+        // BAGIAN 2: AKTIVITAS TERKINI (DINAMIS)
+        // -----------------------------------------------------------
+        $rawActivities = [];
 
-        // Data aktivitas terkini (Dummy)
-        $aktivitas = [
-            ['activity' => 'Mengerjakan Tes Minat', 'time' => '10 menit lalu'],
-            ['activity' => 'Melihat Hasil Rekomendasi', 'time' => '2 jam lalu'],
-            ['activity' => 'Membaca Materi Jurusan TKJ', 'time' => 'Kemarin'],
-        ];
+        // Fungsi helper kecil untuk format data agar seragam
+        // Menggunakan 'created_at' untuk sorting nanti
+        $addActivity = function($model, $title, $desc) use (&$rawActivities, $userId) {
+            $data = $model::where('user_id', $userId)->latest()->first();
+            if ($data) {
+                // Set locale Carbon ke Indonesia (opsional, jika config app belum 'id')
+                Carbon::setLocale('id');
 
-        return view('dashboard', compact('user', 'status_tes', 'menu_items', 'aktivitas'));
+                $rawActivities[] = [
+                    'title' => $title,
+                    'desc'  => $desc,
+                    'timestamp' => $data->created_at, // Untuk sorting
+                    'time'  => $data->created_at->diffForHumans(), // Contoh: "10 menit yang lalu"
+                ];
+            }
+        };
+
+        // Masukkan data dari masing-masing tabel ke array penampung
+        $addActivity(SiswaData::class, 'Data Pribadi Lengkap', 'Anda telah berhasil melengkapi biodata diri.');
+        $addActivity(RiasecResult::class, 'Tes RIASEC Selesai', 'Anda telah menyelesaikan tes minat karir.');
+        $addActivity(MotivasiBelajarResult::class, 'Tes Motivasi Selesai', 'Anda telah menyelesaikan asesmen motivasi belajar.');
+        $addActivity(StudiHabitResult::class, 'Tes Studi Habit Selesai', 'Anda telah menyelesaikan tes kebiasaan belajar.');
+        $addActivity(SosialEmosionalResult::class, 'Tes Sosial Emosional Selesai', 'Anda telah menyelesaikan asesmen kesehatan mental.');
+        $addActivity(PreferensiKelompok::class, 'Tes Preferensi Kelompok Selesai', 'Anda telah menyelesaikan preferensi kerja kelompok.');
+
+        // Urutkan array berdasarkan 'timestamp' (Terbaru di atas / Descending)
+        usort($rawActivities, function ($a, $b) {
+            return $b['timestamp'] <=> $a['timestamp'];
+        });
+
+        // Jika tidak ada aktivitas sama sekali, beri pesan default
+        if (empty($rawActivities)) {
+            $aktivitas = [
+                [
+                    'title' => 'Selamat Datang',
+                    'desc' => 'Silakan mulai dengan mengisi Data Pribadi Anda.',
+                    'time' => 'Sekarang'
+                ]
+            ];
+        } else {
+            // Ambil 5 aktivitas terakhir saja
+            $aktivitas = array_slice($rawActivities, 0, 5);
+        }
+
+        // -----------------------------------------------------------
+        // BAGIAN 3: KIRIM DATA KE VIEW
+        // -----------------------------------------------------------
+        return view('dashboard', compact(
+            'user',
+            'statusDataPribadi',
+            'statusRiasec',
+            'statusMotivasi',
+            'statusStudiHabit',
+            'statusSosialEmosional',
+            'statusPreferensi',
+            'aktivitas'
+        ));
     }
 }
+
+

@@ -46,93 +46,156 @@
             <div class="col-span-1 lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-5">
 
                 @php
-                    // Data dummy kartu dengan path ikon
+                    use Illuminate\Support\Facades\Auth;
+                    use Illuminate\Support\Facades\DB;
+                    use App\Models\SiswaData;     // Pastikan Model ini ada
+                    use App\Models\RiasecResult;  // Pastikan Model ini ada
+
+                    $userId = Auth::id();
+
+                    // --- LOGIKA PENGECEKAN STATUS (Cek Database) ---
+
+                    // 1. Data Pribadi (Menggunakan Model SiswaData)
+                    $statusDataPribadi = SiswaData::where('user_id', $userId)->exists();
+
+                    // 2. RIASEC (Menggunakan Model RiasecResult)
+                    // Pastikan tabelnya benar (biasanya plural: riasec_results)
+                    $statusRiasec = RiasecResult::where('user_id', $userId)->exists();
+
+                    // 3. Motivasi Belajar (Menggunakan Query Builder - Asumsi nama tabel 'motivasi_belajar_results' atau sesuaikan)
+                    // Jika Anda belum buat tabel, ini akan error. Pastikan tabel ada.
+                    // Gunakan try-catch atau pastikan tabel exist jika ragu. Di sini saya asumsikan tabel ada.
+                    $statusMotivasi = DB::table('motivasi_belajar')->where('user_id', $userId)->exists();
+
+                    // 4. Studi Habit (Menggunakan Query Builder)
+                    $statusStudiHabit = DB::table('studi_habit')->where('user_id', $userId)->exists();
+
+                    // 5. Sosial Emosional (Menggunakan Query Builder)
+                    $statusSosialEmosional = DB::table('sosial_emosional')->where('user_id', $userId)->exists();
+
+                    // 6. Preferensi Kelompok (Menggunakan Query Builder)
+                    $statusPreferensi = DB::table('preferensi_kelompok')->where('user_id', $userId)->exists();
+
+
+                    // --- DEFINISI KARTU ---
                     $cards = [
-                        ['title' => 'Data Pribadi Siswa', 'desc' => 'Lengkapi informasi dasar sebagai identitas awal untuk analisis tes selanjutnya.', 'status' => 'Selesai', 'icon' => 'user.svg'],
-                        ['title' => 'RIASEC', 'desc' => 'Kenali minat kariermu berdasarkan tipe kepribadian Holland (RIASEC).', 'status' => 'Belum Dikerjakan', 'icon' => 'riasec.svg'],
-                        ['title' => 'Skala Preferensi Belajar', 'desc' => 'Temukan gaya belajar utama yang paling memengaruhi efektivitas belajarmu.', 'status' => 'Belum Dikerjakan', 'icon' => 'book.svg'],
-                        ['title' => 'Motivasi Belajar', 'desc' => 'Cari tahu seberapa besar motivasi yang kamu miliki dalam menjalani proses belajar.', 'status' => 'Belum Dikerjakan', 'icon' => 'motivation.svg'],
-                        ['title' => 'Studi Habit & Gaya Belajar', 'desc' => 'Ketahui kebiasaan belajarmu dan metode belajar yang paling cocok untukmu.', 'status' => 'Belum Dikerjakan', 'icon' => 'habit.svg'],
-                        ['title' => 'Sosial Emosional & Kesehatan Mental', 'desc' => 'Pahami kondisi emosimu, tingkat stres, dan kesejahteraan mentalmu secara umum.', 'status' => 'Belum Dikerjakan', 'icon' => 'mental.svg'],
-                        ['title' => 'Preferensi Kelompok & Kebutuhan Sosial', 'desc' => 'Kenali kecenderunganmu dalam bekerja sama dan kebutuhan sosial di lingkungan belajar.', 'status' => 'Belum Dikerjakan', 'icon' => 'group.svg'],
-                        ['title' => 'Alat Ungkap Masalah', 'desc' => 'Identifikasi permasalahan belajar, pribadi, atau sosial yang sedang kamu hadapi.', 'status' => 'Belum Dikerjakan', 'icon' => 'checklist.svg'],
+                        [
+                            'title' => 'Data Pribadi Siswa',
+                            'desc' => 'Lengkapi informasi dasar sebagai identitas awal untuk analisis tes selanjutnya.',
+                            'completed' => $statusDataPribadi,
+                            'icon' => 'user.svg'
+                        ],
+                        [
+                            'title' => 'RIASEC',
+                            'desc' => 'Kenali minat kariermu berdasarkan tipe kepribadian Holland (RIASEC).',
+                            'completed' => $statusRiasec,
+                            'icon' => 'riasec.svg'
+                        ],
+                        [
+                            'title' => 'Motivasi Belajar',
+                            'desc' => 'Cari tahu seberapa besar motivasi yang kamu miliki dalam menjalani proses belajar.',
+                            'completed' => $statusMotivasi,
+                            'icon' => 'motivation.svg'
+                        ],
+                        [
+                            'title' => 'Studi Habit & Gaya Belajar',
+                            'desc' => 'Ketahui kebiasaan belajarmu dan metode belajar yang paling cocok untukmu.',
+                            'completed' => $statusStudiHabit,
+                            'icon' => 'habit.svg'
+                        ],
+                        [
+                            'title' => 'Sosial Emosional & Kesehatan Mental',
+                            'desc' => 'Pahami kondisi emosimu, tingkat stres, dan kesejahteraan mentalmu secara umum.',
+                            'completed' => $statusSosialEmosional,
+                            'icon' => 'mental.svg'
+                        ],
+                        [
+                            'title' => 'Preferensi Kelompok & Kebutuhan Sosial',
+                            'desc' => 'Kenali kecenderunganmu dalam bekerja sama dan kebutuhan sosial di lingkungan belajar.',
+                            'completed' => $statusPreferensi,
+                            'icon' => 'group.svg'
+                        ],
+                        // Tes lain yang belum diimplementasikan logikanya (Default: False)
+                        [
+                            'title' => 'Skala Preferensi Belajar',
+                            'desc' => 'Temukan gaya belajar utama yang paling memengaruhi efektivitas belajarmu.',
+                            'completed' => false,
+                            'icon' => 'book.svg'
+                        ],
+                        [
+                            'title' => 'Alat Ungkap Masalah',
+                            'desc' => 'Identifikasi permasalahan belajar, pribadi, atau sosial yang sedang kamu hadapi.',
+                            'completed' => false,
+                            'icon' => 'checklist.svg'
+                        ],
                     ];
                 @endphp
 
                 @foreach ($cards as $card)
-    @php
-        // Tentukan URL berdasarkan judul kartu
-        $url = '#'; // Default untuk kartu yang belum punya halaman
+                    @php
+                        // Tentukan URL Link
+                        $url = '#';
+                        if ($card['title'] == 'Data Pribadi Siswa') $url = route('data_pribadi');
+                        elseif ($card['title'] == 'RIASEC') $url = route('riasec.index');
+                        elseif ($card['title'] == 'Motivasi Belajar') $url = route('motivasi.index');
+                        elseif ($card['title'] == 'Studi Habit & Gaya Belajar') $url = route('studi_habit.index');
+                        elseif ($card['title'] == 'Sosial Emosional & Kesehatan Mental') $url = route('sosial_emosional.index'); // Pastikan route ini ada
+                        elseif ($card['title'] == 'Preferensi Kelompok & Kebutuhan Sosial') $url = route('preferensi_kelompok.index'); // Pastikan route ini ada
+                    @endphp
 
-        if ($card['title'] == 'Data Pribadi Siswa') {
-            // Gunakan rute yang sudah didefinisikan di web.php
-            $url = route('data_pribadi');
-        }
-        elseif ($card['title'] == 'RIASEC') {
-            // PERBAIKAN: Mengarahkan ke route riasec.index
-            $url = route('riasec.index');
-         }
-        // --- PERUBAHAN DI SINI: MENAMBAHKAN LINK KE MOTIVASI BELAJAR ---
-        elseif ($card['title'] == 'Motivasi Belajar') {
-             $url = route('motivasi.index');
-        }
-        // --- MENAMBAHKAN LINK KE STUDI HABIT ---
-        elseif ($card['title'] == 'Studi Habit & Gaya Belajar') {
-             $url = route('studi_habit.index');
-        }
-    @endphp
+                    <a href="{{ $url }}" class="bg-white shadow rounded-xl p-5 border border-gray-100 transform hover:shadow-lg transition duration-200 cursor-pointer block h-full flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-10 h-10 bg-[#d8e4ff] rounded flex items-center justify-center flex-shrink-0">
+                                    <img src="{{ asset('icons/' . $card['icon']) }}" alt="{{ $card['title'] }}" class="h-6 w-6 object-contain" />
+                                </div>
+                                <h3 class="font-bold text-[17px] text-[#0A2A43] leading-tight">{{ $card['title'] }}</h3>
+                            </div>
+                            <p class="text-gray-600 text-sm mb-4">{{ $card['desc'] }}</p>
+                        </div>
 
-    {{-- Gunakan <a> sebagai wrapper yang bisa diklik --}}
-    <a href="{{ $url }}" class="bg-white shadow rounded-xl p-5 border border-gray-100 transform hover:shadow-lg transition duration-200 cursor-pointer block h-full">
-        <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 bg-[#d8e4ff] rounded flex items-center justify-center flex-shrink-0">
-                {{-- Menampilkan ikon dari path yang diberikan --}}
-                <img src="{{ asset('icons/' . $card['icon']) }}" alt="{{ $card['title'] }}" class="h-6 w-6 object-contain" />
-            </div>
-            <h3 class="font-bold text-[17px] text-[#0A2A43]">{{ $card['title'] }}</h3>
-        </div>
-        <p class="text-gray-600 text-sm mb-4">{{ $card['desc'] }}</p>
-
-        {{-- Button dipertahankan di dalam tautan untuk styling status --}}
-        @if ($card['status'] == 'Selesai')
-            <button type="button" class="bg-[#FFE27A] text-gray-800 px-4 py-1 rounded-lg text-sm font-semibold">Sudah Selesai</button>
-        @else
-            <button type="button" class="bg-gray-200 text-gray-600 px-4 py-1 rounded-lg text-sm font-semibold">Belum Dikerjakan</button>
-        @endif
-    </a>
-@endforeach
+                        {{-- LOGIKA TOMBOL STATUS --}}
+                        <div>
+                            @if ($card['completed'])
+                                {{-- JIKA SUDAH DIKERJAKAN: WARNA ORANGE --}}
+                                <button type="button" class="w-full bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-orange-600 transition">
+                                    Sudah Dikerjakan
+                                </button>
+                            @else
+                                {{-- JIKA BELUM DIKERJAKAN: WARNA ABU-ABU --}}
+                                <button type="button" class="w-full bg-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-300 transition">
+                                    Belum Dikerjakan
+                                </button>
+                            @endif
+                        </div>
+                    </a>
+                @endforeach
             </div>
 
             {{-- KOLOM KANAN (Aktivitas Terkini) --}}
-            <div class="col-span-1">
-                <div class="bg-white shadow-md rounded-xl p-5 sticky top-20">
-                    <h3 class="font-bold text-[18px] mb-4 flex items-center gap-2 text-[#0A2A43] border-b pb-2">
-                        <img src="{{ asset('icons/activity.svg') }}" alt="Aktivitas" class="h-5 w-5 object-contain" /> Aktivitas Terkini
-                    </h3>
+            {{-- KOLOM KANAN (Aktivitas Terkini) --}}
+<div class="col-span-1">
+    <div class="bg-white shadow-md rounded-xl p-5 sticky top-20">
+        <h3 class="font-bold text-[18px] mb-4 flex items-center gap-2 text-[#0A2A43] border-b pb-2">
+            {{-- Pastikan path icon benar --}}
+            <img src="{{ asset('icons/activity.svg') }}" alt="Aktivitas" class="h-5 w-5 object-contain" />
+            Aktivitas Terkini
+        </h3>
 
-                    @php
-                        // Data aktivitas dummy
-                        $aktivitas = [
-                            ['title' => 'Tes Minat dan Kepribadian Selesai', 'desc' => 'Lihat materi pembelajaran dari guru tanpa proyektor.', 'time' => '4 hari yang lalu'],
-                            ['title' => 'Materi Baru: Pemrograman Web Lanjutan', 'desc' => 'Pak Budi mengunggah materi baru tentang Framework Laravel.', 'time' => '4 hari yang lalu'],
-                            ['title' => 'Reminder: Tes Potensi & Bakat (Aptitude)', 'desc' => 'Jangan lupa untuk menyelesaikan Tes Minat & Bakat.', 'time' => '3 hari yang lalu'],
-                        ];
-                    @endphp
-
-                    @foreach ($aktivitas as $item)
-                        <div class="border-l-[3px] border-[#FFE27A] pl-3 mb-4 last:mb-0">
-                            <h4 class="font-semibold text-[#0A2A43]">{{ $item['title'] }}</h4>
-                            <p class="text-gray-600 text-sm">{{ $item['desc'] }}</p>
-                            <p class="text-gray-500 text-xs mt-1">{{ $item['time'] }}</p>
-                        </div>
-                    @endforeach
-
+        {{-- Looping Data Dinamis dari Controller --}}
+        @foreach ($aktivitas as $item)
+            <div class="border-l-[3px] border-[#FFE27A] pl-3 mb-4 last:mb-0 animate-fade-in-up">
+                <h4 class="font-semibold text-[#0A2A43]">{{ $item['title'] }}</h4>
+                <p class="text-gray-600 text-sm">{{ $item['desc'] }}</p>
+                <p class="text-gray-500 text-xs mt-1 italic">{{ $item['time'] }}</p>
+            </div>
+        @endforeach
                 </div>
             </div>
         </section>
     </main>
 
-    {{-- FOOTER (Warna #0A2A43) --}}
+    {{-- FOOTER --}}
     <footer class="bg-[#0A2A43] text-white text-center mt-10 py-5 text-sm">
         Copyright (c) SMKN 5 Malang {{ date('Y') }}. All rights reserved.
     </footer>

@@ -9,6 +9,8 @@ use App\Http\Controllers\DataPribadiController;
 use App\Http\Controllers\RiasecController;
 use App\Http\Controllers\MotivasiBelajarController;
 use App\Http\Controllers\StudiHabitController;
+use App\Http\Controllers\SosialEmosionalController;
+use App\Http\Controllers\PreferensiKelompokController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -59,16 +61,18 @@ Route::middleware(['auth'])->group(function () {
     // Route Halaman Selesai
     Route::get('/data-pribadi/selesai', [DataPribadiController::class, 'finish'])->name('data_pribadi.finish');
 
-    // Halaman Instruksi
+    // --- RIASEC ROUTES ---
+
+    // 1. Pintu Masuk Utama (Instruksi ATAU Finish - Tergantung Status DB)
     Route::get('/riasec', [RiasecController::class, 'index'])->name('riasec.index');
 
-    // Halaman Form Tes
+    // 2. Halaman Form Tes
     Route::get('/riasec/tes', [RiasecController::class, 'form'])->name('riasec.form');
 
-    // Simpan Jawaban
+    // 3. Simpan Jawaban
     Route::post('/riasec/tes', [RiasecController::class, 'store'])->name('riasec.store');
 
-    // Halaman Selesai Tes RIASEC
+    // 4. Halaman Selesai (Opsional, karena index sudah menghandle ini)
     Route::get('/riasec/selesai', [RiasecController::class, 'finish'])->name('riasec.finish');
 
     // Halaman Instruksi
@@ -101,4 +105,36 @@ Route::middleware(['auth'])->group(function () {
 
     // Halaman Selesai Tes Studi Habit
     Route::get('/studi-habit/selesai', [StudiHabitController::class, 'finish'])->name('studi_habit.finish');
+
+    // SOSIAL EMOSIONAL ROUTES
+    // Halaman Instruksi
+    Route::get('/sosial-emosional', [SosialEmosionalController::class, 'index'])->name('sosial_emosional.index');
+
+    // Halaman Form Soal (Step 1: Data Sosial dan Emosional)
+    Route::get('/sosial-emosional/tes', [SosialEmosionalController::class, 'form'])->name('sosial_emosional.form');
+
+    // Proses Simpan Data Step 1
+    Route::post('/sosial-emosional/tes', [SosialEmosionalController::class, 'store'])->name('sosial_emosional.store');
+
+    // Halaman Step 2 (Kesehatan Mental)
+    Route::get('/sosial-emosional/step2', [SosialEmosionalController::class, 'step2'])->name('sosial_emosional_step2');
+
+    // Proses Simpan Data Step 2
+    Route::post('/sosial-emosional/step2', [SosialEmosionalController::class, 'storeStep2'])->name('sosial_emosional_step2.store');
+
+    // Halaman Selesai Tes Sosial Emosional
+    Route::get('/sosial-emosional/selesai', [SosialEmosionalController::class, 'finish'])->name('sosial_emosional.finish');
+
+    // PREFERENSI KELOMPOK ROUTES
+    // Halaman Instruksi
+    Route::get('/preferensi-kelompok', [PreferensiKelompokController::class, 'index'])->name('preferensi_kelompok.index');
+
+    // Halaman Form Soal
+    Route::get('/preferensi-kelompok/tes', [PreferensiKelompokController::class, 'form'])->name('preferensi_kelompok.form');
+
+    // Proses Simpan Data
+    Route::post('/preferensi-kelompok/tes', [PreferensiKelompokController::class, 'store'])->name('preferensi_kelompok.store');
+
+    // Halaman Selesai Tes Preferensi Kelompok
+    Route::get('/preferensi-kelompok/selesai', [PreferensiKelompokController::class, 'finish'])->name('preferensi_kelompok.finish');
 });

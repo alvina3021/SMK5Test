@@ -4,29 +4,49 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\SiswaData;
+use App\Models\SiswaData; // Pastikan Model SiswaData di-import
 
 class DataPribadiController extends Controller
 {
+    /**
+     * HALAMAN PINTU MASUK (GATEKEEPER)
+     * Mengecek apakah user sudah mengisi data pribadi secara lengkap.
+     */
     public function instruksi()
     {
         $user = Auth::user();
+
+        // 1. CEK DATABASE: Apakah user ini sudah ada datanya?
+        $sudahLengkap = SiswaData::where('user_id', $user->id)->exists();
+
+        // 2. LOGIKA PENGALIHAN
+        if ($sudahLengkap) {
+            // JIKA SUDAH: Tampilkan view Finish (Selesai)
+            return view('data_pribadi_finish', compact('user'));
+        }
+
+        // JIKA BELUM: Tampilkan Halaman Instruksi
         return view('data_pribadi', compact('user'));
     }
 
+    /**
+     * FORM STEP 1: DATA DIRI
+     */
     public function form()
     {
         $user = Auth::user();
+
+        // PROTEKSI: Jika user sudah selesai, tendang balik ke instruksi (yang akan menampilkan finish)
+        if (SiswaData::where('user_id', $user->id)->exists()) {
+             return redirect()->route('data_pribadi');
+        }
+
         return view('data_pribadi_form', compact('user'));
     }
 
-    // --- STEP 1: DATA DIRI ---
-    public function step1()
-    {
-        $user = Auth::user();
-        return view('data_pribadi_form', compact('user'));
-    }
-
+    /**
+     * PROSES SIMPAN STEP 1
+     */
     public function storeForm(Request $request)
     {
         // 1. Validasi Data Diri
@@ -43,7 +63,7 @@ class DataPribadiController extends Controller
             'jumlah_saudara' => 'required',
             'status_orang_tua' => 'required',
             'uang_saku' => 'required',
-            'bantuan_pemerintah' => 'nullable',
+            'bantuan_pemerintah' => 'nullable', // Array checkbox biasanya
             'foto_kartu_bantuan' => 'nullable|image|max:2048',
             'alamat' => 'required',
             'kepemilikan_rumah' => 'required',
@@ -73,18 +93,29 @@ class DataPribadiController extends Controller
         return redirect()->route('data_pribadi.step2');
     }
 
-    // --- STEP 2: DATA ORANG TUA ---
+    /**
+     * FORM STEP 2: DATA ORANG TUA
+     */
     public function step2()
     {
-        // Cek session step 1
+        $user = Auth::user();
+
+        // PROTEKSI 1: Sudah selesai?
+        if (SiswaData::where('user_id', $user->id)->exists()) {
+             return redirect()->route('data_pribadi');
+        }
+
+        // PROTEKSI 2: Belum isi Step 1?
         if (!session()->has('data_pribadi_form')) {
             return redirect()->route('data_pribadi.form');
         }
 
-        $user = Auth::user();
         return view('data_pribadi_step2', compact('user'));
     }
 
+    /**
+     * PROSES SIMPAN STEP 2
+     */
     public function storeStep2(Request $request)
     {
         // 1. Validasi Data Orang Tua
@@ -105,17 +136,26 @@ class DataPribadiController extends Controller
             'no_hp_ibu' => 'nullable',
         ]);
 
-        // 2. Simpan Data Step 2 ke Session (JANGAN simpan ke DB dulu)
+        // 2. Simpan Data Step 2 ke Session
         $request->session()->put('data_pribadi_step2', $validated);
 
         // 3. Redirect ke Halaman 3 (Data Wali)
         return redirect()->route('data_pribadi.step3');
     }
 
-    // --- STEP 3: DATA WALI (Baru) ---
+    /**
+     * FORM STEP 3: DATA WALI
+     */
     public function step3()
     {
-        // Cek jika step 1 atau step 2 belum diisi
+        $user = Auth::user();
+
+        // PROTEKSI 1: Sudah selesai?
+        if (SiswaData::where('user_id', $user->id)->exists()) {
+             return redirect()->route('data_pribadi');
+        }
+
+        // PROTEKSI 2: Belum isi Step 1 atau Step 2?
         if (!session()->has('data_pribadi_form')) {
             return redirect()->route('data_pribadi.form');
         }
@@ -123,13 +163,15 @@ class DataPribadiController extends Controller
             return redirect()->route('data_pribadi.step2');
         }
 
-        $user = Auth::user();
         return view('data_pribadi_step3', compact('user'));
     }
 
+    /**
+     * PROSES SIMPAN STEP 3 (FINAL)
+     */
     public function storeStep3(Request $request)
     {
-        // 1. Validasi Data Wali (Nullable semua karena opsional)
+        // 1. Validasi Data Wali
         $validated = $request->validate([
             'nama_wali' => 'nullable|string',
             'alamat_wali' => 'nullable|string',
@@ -148,7 +190,7 @@ class DataPribadiController extends Controller
         $finalData = array_merge($step1, $step2, $step3);
         $finalData['user_id'] = Auth::id();
 
-        // Handle JSON encode untuk bantuan pemerintah (dari Step 1)
+        // Handle JSON encode untuk bantuan pemerintah (checkbox array)
         if(isset($finalData['bantuan_pemerintah']) && is_array($finalData['bantuan_pemerintah'])){
              $finalData['bantuan_pemerintah'] = json_encode($finalData['bantuan_pemerintah']);
         }
@@ -163,14 +205,18 @@ class DataPribadiController extends Controller
             // Hapus session setelah berhasil disimpan
             $request->session()->forget(['data_pribadi_form', 'data_pribadi_step2']);
 
-            return redirect()->route('data_pribadi.finish');
-            //return redirect()->route('dashboard')->with('success', 'Seluruh data berhasil disimpan!');
+            // 5. REDIRECT KE HALAMAN UTAMA (instruksi/index)
+            // Di sana nanti akan otomatis dicek DB -> tampilkan Finish.
+            return redirect()->route('data_pribadi');
 
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
         }
     }
 
+    /**
+     * Halaman Finish (Opsional, karena sudah dihandle di index/instruksi)
+     */
     public function finish()
     {
         $user = Auth::user();
