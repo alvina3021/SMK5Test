@@ -19,7 +19,7 @@
 </head>
 <body class="bg-[#F4F1FF] min-h-screen flex flex-col">
 
-    {{-- HEADER / NAVIGATION BAR (Warna #0A2A43) --}}
+    {{-- HEADER / NAVIGATION BAR --}}
     <nav class="bg-[#0A2A43] text-white px-10 py-4 flex justify-between items-center shadow-lg sticky top-0 z-10">
         <div class="flex items-center gap-3">
             <span class="text-xl font-serif font-bold">SMK5TEST</span>
@@ -29,17 +29,29 @@
         <ul class="flex gap-8 text-white/80 font-semibold hidden md:flex mx-auto">
             <li><a href="{{ route('dashboard') }}" class="text-white hover:text-[#FFE27A] border-b-2 border-white pb-1">Dashboard</a></li>
             <li><a href="#" class="hover:text-white pb-1 border-b-2 border-transparent">Tes Saya</a></li>
-            <li><a href="#" class="hover:text-white pb-1 border-b-2 border-transparent">Materi</a></li>
         </ul>
 
-        {{-- PROFIL --}}
+        {{-- PROFIL & LOGOUT --}}
         @auth
-        <div class="flex items-center gap-3 ml-auto">
-            <span class="text-white text-base font-semibold hidden sm:block">{{ explode(' ', $user->name)[0] }}</span>
-            <div class="w-10 h-10 rounded-full bg-white text-[#0A2A43] flex items-center justify-center font-bold text-lg cursor-pointer">
-                {{ substr(explode(' ', $user->name)[0], 0, 1) }}
+        {{-- Link ke Halaman Profile --}}
+        <a href="{{ route('profile.index') }}" class="flex items-center gap-3 ml-auto hover:opacity-90 transition group">
+
+            {{-- Nama User --}}
+            <span class="text-white text-base font-semibold hidden sm:block group-hover:text-[#FFE27A] transition">
+                {{ explode(' ', $user->name)[0] }}
+            </span>
+
+            {{-- Avatar User --}}
+            <div class="w-10 h-10 rounded-full bg-white text-[#0A2A43] flex items-center justify-center font-bold text-lg cursor-pointer overflow-hidden border-2 border-transparent group-hover:border-[#FFE27A] transition">
+                @if($user->profile_photo_path)
+                    {{-- Tampilkan Foto Jika Ada --}}
+                    <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
+                @else
+                    {{-- Tampilkan Inisial Jika Tidak Ada Foto --}}
+                    {{ substr(explode(' ', $user->name)[0], 0, 1) }}
+                @endif
             </div>
-        </div>
+        </a>
         @endauth
     </nav>
 
@@ -65,17 +77,38 @@
                     <div class="bg-[#0A2A43] text-white px-4 py-2 rounded-lg inline-block font-bold text-sm">Pertanyaan 1</div>
                     <label class="block text-lg font-bold text-gray-800">Unggah Foto</label>
                     <p class="text-sm text-gray-500">Ketentuan: tampak depan - wajah harus terlihat jelas - foto terbaru (berseragam, tidak menggunakan masker/helm).</p>
-                    <input type="file" name="foto_profil" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#E9ECF5] file:text-[#0A2A43] hover:file:bg-[#dce1f0]">
+
+                    {{-- LOGIKA PREVIEW: Jika data sudah ada di database/session --}}
+                    @if(isset($dataSiswa->foto_profil) && $dataSiswa->foto_profil)
+                        <div class="flex items-center gap-4 bg-green-50 p-3 rounded-lg border border-green-200 mb-2">
+                            {{-- Tampilkan Thumbnail Foto Lama --}}
+                            <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-[#0A2A43]">
+                                <img src="{{ asset('storage/' . $dataSiswa->foto_profil) }}" class="w-full h-full object-cover" alt="Foto Lama">
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-[#0A2A43]">&#10003; Foto sudah tersimpan</p>
+                                <p class="text-xs text-gray-600">Biarkan kosong jika tidak ingin mengganti foto.</p>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- INPUT FILE --}}
+                    {{-- Perhatikan bagian {{ ... ? '' : 'required' }} --}}
+                    {{-- Jika foto SUDAH ada ($dataSiswa->foto_profil), maka TIDAK required. Jika BELUM ada, maka required. --}}
+                    <input type="file" name="foto_profil" accept="image/*"
+                        {{ (isset($dataSiswa->foto_profil) && $dataSiswa->foto_profil) ? '' : 'required' }}
+                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#E9ECF5] file:text-[#0A2A43] hover:file:bg-[#dce1f0]">
                 </div>
 
-                {{-- 4. JENIS KELAMIN --}}
+                {{-- 2. JENIS KELAMIN --}}
                 <div class="space-y-3 border-b border-gray-100 pb-6">
                     <div class="bg-[#0A2A43] text-white px-4 py-2 rounded-lg inline-block font-bold text-sm">Pertanyaan 2</div>
                     <label class="block text-lg font-bold text-gray-800">Jenis Kelamin <span class="text-red-500">*</span></label>
                     <div class="space-y-2 custom-radio">
                         @foreach (['Laki-Laki', 'Perempuan'] as $jk)
                         <label class="cursor-pointer block">
-                            <input type="radio" name="jenis_kelamin" value="{{ $jk }}" class="hidden" required>
+                            <input type="radio" name="jenis_kelamin" value="{{ $jk }}" class="hidden" required
+                            @checked(old('jenis_kelamin', $dataSiswa->jenis_kelamin ?? '') == $jk)>
                             <div class="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
                                 <div class="radio-circle w-5 h-5 border-2 border-gray-400 rounded-full mr-3 bg-white"></div>
                                 <span class="text-gray-700">{{ $jk }}</span>
@@ -92,7 +125,8 @@
                     <div class="space-y-2 custom-radio">
                         @foreach (['Islam', 'Kristen', 'Katholik', 'Hindu', 'Budha', 'Aliran Kepercayaan lain'] as $agama)
                         <label class="cursor-pointer block">
-                            <input type="radio" name="agama" value="{{ $agama }}" class="hidden" required>
+                            <input type="radio" name="agama" value="{{ $agama }}" class="hidden" required
+                                @checked(old('agama', $dataSiswa->agama ?? '') == $agama)>
                             <div class="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
                                 <div class="radio-circle w-5 h-5 border-2 border-gray-400 rounded-full mr-3 bg-white"></div>
                                 <span class="text-gray-700">{{ $agama }}</span>
@@ -106,14 +140,14 @@
                 <div class="space-y-3 border-b border-gray-100 pb-6">
                     <div class="bg-[#0A2A43] text-white px-4 py-2 rounded-lg inline-block font-bold text-sm">Pertanyaan 4</div>
                     <label class="block text-lg font-bold text-gray-800">Tempat lahir (Nama Kota / Kabupaten) <span class="text-red-500">*</span></label>
-                    <input type="text" name="tempat_lahir" class="w-full border-b border-gray-300 focus:border-[#0A2A43] outline-none py-2 px-1 transition" placeholder="Tempat Lahir" required>
+                    <input type="text" name="tempat_lahir" value="{{ old('tempat_lahir', $dataSiswa->tempat_lahir ?? '') }}"class="w-full border-b border-gray-300 focus:border-[#0A2A43] outline-none py-2 px-1 transition" placeholder="Tempat Lahir" required>
                 </div>
 
                 {{-- 7. TANGGAL LAHIR --}}
                 <div class="space-y-3 border-b border-gray-100 pb-6">
                     <div class="bg-[#0A2A43] text-white px-4 py-2 rounded-lg inline-block font-bold text-sm">Pertanyaan 5</div>
                     <label class="block text-lg font-bold text-gray-800">Tanggal lahir <span class="text-red-500">*</span></label>
-                    <input type="date" name="tanggal_lahir" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-[#0A2A43] outline-none transition" required>
+                    <input type="date" name="tanggal_lahir" value="{{ old('tanggal_lahir', $dataSiswa->tanggal_lahir ?? '') }}"class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-[#0A2A43] outline-none transition" required>
                 </div>
 
                 {{-- 8. STATUS ANAK --}}
@@ -123,7 +157,8 @@
                     <div class="space-y-2 custom-radio">
                         @foreach (['Kandung', 'Angkat/ Adopsi'] as $status_anak)
                         <label class="cursor-pointer block">
-                            <input type="radio" name="status_anak" value="{{ $status_anak }}" class="hidden" required>
+                            <input type="radio" name="status_anak" value="{{ $status_anak }}" class="hidden" required
+                                @checked(old('status_anak', $dataSiswa->status_anak ?? '') == $status_anak)>
                             <div class="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
                                 <div class="radio-circle w-5 h-5 border-2 border-gray-400 rounded-full mr-3 bg-white"></div>
                                 <span class="text-gray-700">{{ $status_anak }}</span>
@@ -137,14 +172,14 @@
                 <div class="space-y-3 border-b border-gray-100 pb-6">
                     <div class="bg-[#0A2A43] text-white px-4 py-2 rounded-lg inline-block font-bold text-sm">Pertanyaan 7</div>
                     <label class="block text-lg font-bold text-gray-800">Anak ke... <span class="text-red-500">*</span></label>
-                    <input type="number" name="anak_ke" class="w-full border-b border-gray-300 focus:border-[#0A2A43] outline-none py-2 px-1 transition" placeholder="Isi dengan angka" required>
+                    <input type="number" name="anak_ke" value="{{ old('anak_ke', $dataSiswa->anak_ke ?? '') }}" class="w-full border-b border-gray-300 focus:border-[#0A2A43] outline-none py-2 px-1 transition" placeholder="Isi dengan angka" required>
                 </div>
 
                 {{-- 10. JUMLAH SAUDARA --}}
                 <div class="space-y-3 border-b border-gray-100 pb-6">
                     <div class="bg-[#0A2A43] text-white px-4 py-2 rounded-lg inline-block font-bold text-sm">Pertanyaan 8</div>
                     <label class="block text-lg font-bold text-gray-800">Jumlah Saudara .... <span class="text-red-500">*</span></label>
-                    <input type="number" name="jumlah_saudara" class="w-full border-b border-gray-300 focus:border-[#0A2A43] outline-none py-2 px-1 transition" placeholder="Isi dengan angka" required>
+                    <input type="number" name="jumlah_saudara" value="{{ old('jumlah_saudara', $dataSiswa->jumlah_saudara ?? '') }}"class="w-full border-b border-gray-300 focus:border-[#0A2A43] outline-none py-2 px-1 transition" placeholder="Isi dengan angka" required>
                 </div>
 
                 {{-- 11. STATUS ORANG TUA --}}
@@ -154,7 +189,8 @@
                     <div class="space-y-2 custom-radio">
                         @foreach (['Lengkap', 'Cerai Hidup', 'Cerai Mati (Salah Satu Meninggal)', 'Keduanya Meninggal (Yatim Piatu)'] as $status_ortu)
                         <label class="cursor-pointer block">
-                            <input type="radio" name="status_orang_tua" value="{{ $status_ortu }}" class="hidden" required>
+                            <input type="radio" name="status_orang_tua" value="{{ $status_ortu }}" class="hidden" required
+                                @checked(old('status_orang_tua', $dataSiswa->status_orang_tua ?? '') == $status_ortu)>
                             <div class="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
                                 <div class="radio-circle w-5 h-5 border-2 border-gray-400 rounded-full mr-3 bg-white"></div>
                                 <span class="text-gray-700">{{ $status_ortu }}</span>
@@ -171,7 +207,8 @@
                     <div class="space-y-2 custom-radio">
                         @foreach (['< 5.000,00', '5.000 - 10.000', '10.000 - 20.000', '20.000 - 30.000', '> 30.000'] as $uang)
                         <label class="cursor-pointer block">
-                            <input type="radio" name="uang_saku" value="{{ $uang }}" class="hidden" required>
+                            <input type="radio" name="uang_saku" value="{{ $uang }}" class="hidden" required
+                                @checked(old('uang_saku', $dataSiswa->uang_saku ?? '') == $uang)>
                             <div class="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
                                 <div class="radio-circle w-5 h-5 border-2 border-gray-400 rounded-full mr-3 bg-white"></div>
                                 <span class="text-gray-700">{{ $uang }}</span>
@@ -189,7 +226,8 @@
                         @foreach (['KIP (Kartu Indonesia Pintar)', 'PKH (Program Keluarga Harapan)', 'KIS (Kartu Indonesia Sehat)', 'Tidak menerima bantuan apapun', 'Lain - lain'] as $bantuan)
                         <label class="cursor-pointer block">
                             {{-- Menggunakan Radio karena gambar menunjukkan lingkaran (radio), meskipun secara logika bisa multiple --}}
-                            <input type="radio" name="bantuan_pemerintah" value="{{ $bantuan }}" class="hidden" required>
+                            <input type="radio" name="bantuan_pemerintah" value="{{ $bantuan }}" class="hidden" required
+                                @checked(old('bantuan_pemerintah', $dataSiswa->bantuan_pemerintah ?? '') == $bantuan)>
                             <div class="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
                                 <div class="radio-circle w-5 h-5 border-2 border-gray-400 rounded-full mr-3 bg-white"></div>
                                 <span class="text-gray-700">{{ $bantuan }}</span>
@@ -210,7 +248,8 @@
                 <div class="space-y-3 border-b border-gray-100 pb-6">
                     <div class="bg-[#0A2A43] text-white px-4 py-2 rounded-lg inline-block font-bold text-sm">Pertanyaan 13</div>
                     <label class="block text-lg font-bold text-gray-800">Alamat/ tempat tinggal saat ini (tulis lengkap beserta RT/RW, dan kode pos) <span class="text-red-500">*</span></label>
-                    <textarea name="alamat" rows="3" class="w-full border-b border-gray-300 focus:border-[#0A2A43] outline-none py-2 px-1 transition" placeholder="Alamat Lengkap" required></textarea>
+                    <textarea name="alamat" rows="3" class="w-full border-b border-gray-300 focus:border-[#0A2A43] outline-none py-2 px-1 transition" placeholder="Alamat Lengkap" required>
+                        {{ old('alamat', $dataSiswa->alamat ?? '') }}</textarea>
                 </div>
 
                 {{-- 16. STATUS KEPEMILIKAN RUMAH --}}
@@ -220,7 +259,8 @@
                     <div class="space-y-2 custom-radio">
                         @foreach (['Milik Sendiri (milik orang tua)', 'Kontrak / Sewa', 'Kost', 'Milik saudara', 'lain-lain'] as $rumah)
                         <label class="cursor-pointer block">
-                            <input type="radio" name="kepemilikan_rumah" value="{{ $rumah }}" class="hidden" required>
+                            <input type="radio" name="kepemilikan_rumah" value="{{ $rumah }}" class="hidden" required
+                                @checked(old('kepemilikan_rumah', $dataSiswa->kepemilikan_rumah ?? '') == $rumah)>
                             <div class="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
                                 <div class="radio-circle w-5 h-5 border-2 border-gray-400 rounded-full mr-3 bg-white"></div>
                                 <span class="text-gray-700">{{ $rumah }}</span>
@@ -234,28 +274,32 @@
                 <div class="space-y-3 border-b border-gray-100 pb-6">
                     <div class="bg-[#0A2A43] text-white px-4 py-2 rounded-lg inline-block font-bold text-sm">Pertanyaan 15</div>
                     <label class="block text-lg font-bold text-gray-800">No telp/ HP aktif <span class="text-red-500">*</span></label>
-                    <input type="tel" name="no_hp" class="w-full border-b border-gray-300 focus:border-[#0A2A43] outline-none py-2 px-1 transition" placeholder="Contoh: 081234567890" required>
+                    <input type="tel" name="no_hp" value="{{ old('no_hp', $dataSiswa->no_hp ?? '') }}"class="w-full border-b border-gray-300 focus:border-[#0A2A43] outline-none py-2 px-1 transition" placeholder="Contoh: 081234567890" required>
                 </div>
 
                 {{-- 18. HOBI SAYA --}}
                     <div class="space-y-3 border-b border-gray-100 pb-6">
                         <div class="bg-[#0A2A43] text-white px-4 py-2 rounded-lg inline-block font-bold text-sm">Pertanyaan 16</div>
                         <label class="block text-lg font-bold text-gray-800">Hobi saya <span class="text-red-500">*</span></label>
-                        <textarea name="hobi" rows="2" class="w-full border-b border-gray-300 focus:border-[#0A2A43] outline-none py-2 px-1 transition" placeholder="Tuliskan hobi Anda" required></textarea>
+                        <textarea name="hobi" rows="2" class="w-full border-b border-gray-300 focus:border-[#0A2A43] outline-none py-2 px-1 transition" placeholder="Tuliskan hobi Anda" required>{{ old('hobi', $dataSiswa->hobi ?? '') }}</textarea>
                     </div>
 
                     {{-- 19. KELEBIHAN SAYA --}}
                     <div class="space-y-3 border-b border-gray-100 pb-6">
                         <div class="bg-[#0A2A43] text-white px-4 py-2 rounded-lg inline-block font-bold text-sm">Pertanyaan 17</div>
                         <label class="block text-lg font-bold text-gray-800">Kelebihan saya <span class="text-red-500">*</span></label>
-                        <textarea name="kelebihan" rows="2" class="w-full border-b border-gray-300 focus:border-[#0A2A43] outline-none py-2 px-1 transition" placeholder="Tuliskan kelebihan Anda" required></textarea>
+                        <textarea name="kelebihan" rows="2"
+                                class="w-full border-b border-gray-300 focus:border-[#0A2A43] outline-none py-2 px-1 transition"
+                                placeholder="Tuliskan kelebihan Anda" required>{{ old('kelebihan', $dataSiswa->kelebihan ?? '') }}</textarea>
                     </div>
 
                     {{-- 20. KELEMAHAN SAYA --}}
                     <div class="space-y-3 border-b border-gray-100 pb-6">
                         <div class="bg-[#0A2A43] text-white px-4 py-2 rounded-lg inline-block font-bold text-sm">Pertanyaan 18</div>
                         <label class="block text-lg font-bold text-gray-800">Kelemahan saya <span class="text-red-500">*</span></label>
-                        <textarea name="kelemahan" rows="2" class="w-full border-b border-gray-300 focus:border-[#0A2A43] outline-none py-2 px-1 transition" placeholder="Tuliskan kelemahan Anda" required></textarea>
+                        <textarea name="kelemahan" rows="2"
+                                class="w-full border-b border-gray-300 focus:border-[#0A2A43] outline-none py-2 px-1 transition"
+                                placeholder="Tuliskan kelemahan Anda" required>{{ old('kelemahan', $dataSiswa->kelemahan ?? '') }}</textarea>
                     </div>
 
                     {{-- TOMBOL NAVIGASI STEP 2 --}}

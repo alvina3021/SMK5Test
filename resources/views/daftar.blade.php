@@ -26,25 +26,34 @@
             {{-- INPUT NAMA LENGKAP --}}
             <div class="mb-5">
                 <label for="name" class="block text-primary-blue font-bold text-sm mb-2">Nama Lengkap</label>
-                <input type="text" id="name" name="name"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue transition placeholder-gray-400"
+                <input type="text" id="name" name="name" value="{{ old('name') }}"
+                    class="w-full border @error('name') border-red-500 @else border-gray-300 @enderror rounded-lg px-4 py-3 focus:outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue transition placeholder-gray-400"
                     placeholder="Isi nama sesuai ijazah / data sekolah">
+                @error('name')
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             {{-- INPUT NIS --}}
             <div class="mb-5">
                 <label for="nis" class="block text-primary-blue font-bold text-sm mb-2">NIS</label>
-                <input type="text" id="nis" name="nis"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue transition placeholder-gray-400"
+                <input type="text" id="nis" name="nis" value="{{ old('nis') }}"
+                    class="w-full border @error('nis') border-red-500 @else border-gray-300 @enderror rounded-lg px-4 py-3 focus:outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue transition placeholder-gray-400"
                     placeholder="Masukkan Nomor Induk Siswa">
+                @error('nis')
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             {{-- INPUT EMAIL --}}
             <div class="mb-5">
                 <label for="email" class="block text-primary-blue font-bold text-sm mb-2">Email</label>
-                <input type="email" id="email" name="email"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue transition placeholder-gray-400"
+                <input type="email" id="email" name="email" value="{{ old('email') }}"
+                    class="w-full border @error('email') border-red-500 @else border-gray-300 @enderror rounded-lg px-4 py-3 focus:outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue transition placeholder-gray-400"
                     placeholder="Masukkan Alamat Email">
+                @error('email')
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             {{-- ROW KELAS & JURUSAN --}}
@@ -53,32 +62,38 @@
                 <div class="w-full md:w-1/2">
                     <label for="kelas" class="block text-primary-blue font-bold text-sm mb-2">Kelas</label>
                     <div class="relative">
-                        <select id="kelas" name="kelas" class="w-full border border-gray-300 rounded-lg px-4 py-3 appearance-none focus:outline-none focus:border-primary-blue bg-white">
+                        <select id="kelas" name="kelas" class="w-full border @error('kelas') border-red-500 @else border-gray-300 @enderror rounded-lg px-4 py-3 appearance-none focus:outline-none focus:border-primary-blue bg-white">
                             <option value="" disabled selected>Pilih Kelas</option>
-                            <option value="10">X (10)</option>
-                            <option value="11">XI (11)</option>
-                            <option value="12">XII (12)</option>
+                            <option value="10" {{ old('kelas') == '10' ? 'selected' : '' }}>X (10)</option>
+                            <option value="11" {{ old('kelas') == '11' ? 'selected' : '' }}>XI (11)</option>
+                            <option value="12" {{ old('kelas') == '12' ? 'selected' : '' }}>XII (12)</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-700">
                             <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                         </div>
                     </div>
+                    @error('kelas')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 {{-- JURUSAN --}}
                 <div class="w-full md:w-1/2">
                     <label for="jurusan" class="block text-primary-blue font-bold text-sm mb-2">Jurusan</label>
                     <div class="relative">
-                        <select id="jurusan" name="jurusan" class="w-full border border-gray-300 rounded-lg px-4 py-3 appearance-none focus:outline-none focus:border-primary-blue bg-white">
+                        <select id="jurusan" name="jurusan" class="w-full border @error('jurusan') border-red-500 @else border-gray-300 @enderror rounded-lg px-4 py-3 appearance-none focus:outline-none focus:border-primary-blue bg-white">
                             <option value="" disabled selected>Pilih Jurusan</option>
-                            <option value="RPL">RPL</option>
-                            <option value="TKJ">TKJ</option>
-                            <option value="DKV">DKV</option>
-                            </select>
+                            <option value="RPL" {{ old('jurusan') == 'RPL' ? 'selected' : '' }}>RPL</option>
+                            <option value="TKJ" {{ old('jurusan') == 'TKJ' ? 'selected' : '' }}>TKJ</option>
+                            <option value="DKV" {{ old('jurusan') == 'DKV' ? 'selected' : '' }}>DKV</option>
+                        </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-700">
                             <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                         </div>
                     </div>
+                    @error('jurusan')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
             </div>
 
@@ -86,8 +101,11 @@
             <div class="mb-6">
                 <label for="password" class="block text-primary-blue font-bold text-sm mb-2">Password</label>
                 <input type="password" id="password" name="password"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue transition placeholder-gray-400"
+                    class="w-full border @error('password') border-red-500 @else border-gray-300 @enderror rounded-lg px-4 py-3 focus:outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue transition placeholder-gray-400"
                     placeholder="Minimal 6 Karakter">
+                @error('password')
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             {{-- INGAT SAYA & LUPA PASSWORD --}}

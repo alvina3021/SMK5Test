@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Selesai - SMK5TEST</title>
+    <title>Hasil Tes RIASEC - SMK5TEST</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
-        /* Animasi kustom untuk ikon sukses */
-        @keyframes bounce-slow {
-            0%, 100% { transform: translateY(-5%); }
-            50% { transform: translateY(5%); }
+        @keyframes fade-in-up {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .animate-bounce-slow {
-            animation: bounce-slow 2s infinite;
+        .animate-fade-in-up {
+            animation: fade-in-up 0.8s ease-out forwards;
         }
     </style>
 </head>
 <body class="bg-[#F4F1FF] min-h-screen flex flex-col font-sans">
 
+    {{-- HEADER / NAVIGATION BAR --}}
     <nav class="bg-[#0A2A43] text-white px-10 py-4 flex justify-between items-center shadow-lg sticky top-0 z-10">
         <div class="flex items-center gap-3">
             <span class="text-xl font-serif font-bold">SMK5TEST</span>
@@ -27,61 +27,115 @@
         <ul class="flex gap-8 text-white/80 font-semibold hidden md:flex mx-auto">
             <li><a href="{{ route('dashboard') }}" class="text-white hover:text-[#FFE27A] border-b-2 border-white pb-1">Dashboard</a></li>
             <li><a href="#" class="hover:text-white pb-1 border-b-2 border-transparent">Tes Saya</a></li>
-            <li><a href="#" class="hover:text-white pb-1 border-b-2 border-transparent">Materi</a></li>
         </ul>
 
-        {{-- PROFIL --}}
+        {{-- PROFIL & LOGOUT --}}
         @auth
-        <div class="flex items-center gap-3 ml-auto">
-            <span class="text-white text-base font-semibold hidden sm:block">{{ explode(' ', $user->name)[0] }}</span>
-            <div class="w-10 h-10 rounded-full bg-white text-[#0A2A43] flex items-center justify-center font-bold text-lg cursor-pointer">
-                {{ substr(explode(' ', $user->name)[0], 0, 1) }}
+        {{-- Link ke Halaman Profile --}}
+        <a href="{{ route('profile.index') }}" class="flex items-center gap-3 ml-auto hover:opacity-90 transition group">
+
+            {{-- Nama User --}}
+            <span class="text-white text-base font-semibold hidden sm:block group-hover:text-[#FFE27A] transition">
+                {{ explode(' ', $user->name)[0] }}
+            </span>
+
+            {{-- Avatar User --}}
+            <div class="w-10 h-10 rounded-full bg-white text-[#0A2A43] flex items-center justify-center font-bold text-lg cursor-pointer overflow-hidden border-2 border-transparent group-hover:border-[#FFE27A] transition">
+                @if($user->profile_photo_path)
+                    {{-- Tampilkan Foto Jika Ada --}}
+                    <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
+                @else
+                    {{-- Tampilkan Inisial Jika Tidak Ada Foto --}}
+                    {{ substr(explode(' ', $user->name)[0], 0, 1) }}
+                @endif
             </div>
-        </div>
+        </a>
         @endauth
     </nav>
 
     {{-- KONTEN UTAMA --}}
-    <main class="flex-grow flex items-center justify-center py-10 px-4 sm:px-6 lg:px-8">
-        <div class="w-full max-w-lg mx-auto">
+    <main class="flex-grow py-10 px-4 sm:px-6 lg:px-8">
+        <div class="w-full max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
 
-            {{-- KARTU SUKSES --}}
-            <div class="bg-white shadow-2xl rounded-2xl p-8 md:p-12 text-center relative overflow-hidden border-t-8 border-[#0A2A43]">
+            {{-- KOLOM KIRI: HASIL UTAMA --}}
+            <div class="md:col-span-1 flex flex-col gap-6 animate-fade-in-up">
+                <div class="bg-white shadow-xl rounded-2xl p-6 text-center border-t-8 border-[#FFE27A] relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-yellow-100 text-yellow-800 text-xs font-bold px-2 py-1 rounded-bl-lg">
+                        Dominan
+                    </div>
 
-                {{-- Hiasan Garis Kuning --}}
-                <div class="absolute top-0 left-0 w-full h-1 bg-[#FFE27A]"></div>
+                    {{-- Ikon / Ilustrasi Besar Huruf --}}
+                    <div class="w-24 h-24 mx-auto bg-[#0A2A43] rounded-full flex items-center justify-center text-white text-5xl font-bold mb-4 shadow-lg">
+                        {{ substr(session('topResult'), 0, 1) }}
+                    </div>
 
-                {{-- Ikon Sukses Animasi --}}
-                <div class="mx-auto flex items-center justify-center h-24 w-24 rounded-full bg-green-50 mb-6 animate-bounce-slow ring-8 ring-green-100/50">
-                    <svg class="h-12 w-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                    </svg>
+                    <h2 class="text-2xl font-bold text-[#0A2A43] mb-1">{{ session('topResult') }}</h2>
+                    <p class="text-gray-500 text-sm font-medium mb-4">Tipe Kepribadian Utama Anda</p>
+
+                    <div class="bg-gray-50 rounded-lg p-4 text-left">
+                        <p class="text-gray-700 text-sm leading-relaxed">
+                            {{ session('description') }}
+                        </p>
+                    </div>
                 </div>
 
-                {{-- Judul --}}
-                <h2 class="text-3xl font-bold text-[#0A2A43] mb-3">Terima Kasih!</h2>
-                <h3 class="text-lg font-semibold text-gray-700 mb-6">Jawaban Anda Berhasil Disimpan</h3>
-
-                {{-- Pesan --}}
-                <p class="text-gray-500 mb-8 leading-relaxed">
-                    Anda telah menyelesaikan Tes Minat RIASEC.<br>
-                    Sistem kami sedang menganalisis jawaban Anda untuk menentukan rekomendasi karir yang sesuai.
-                </p>
-
-                {{-- Tombol Kembali --}}
-                <a href="{{ route('dashboard') }}" class="inline-flex items-center justify-center gap-2 bg-[#0A2A43] text-white font-bold text-base py-3 px-8 rounded-xl shadow-lg hover:bg-[#143d5e] hover:shadow-xl transform hover:-translate-y-1 transition duration-200 w-full sm:w-auto">
-                    <span>Kembali ke Dashboard</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                    </svg>
-                </a>
-
+                {{-- Kode Kombinasi (Top 3) --}}
+                <div class="bg-[#0A2A43] text-white rounded-xl p-6 shadow-lg text-center">
+                    <h3 class="text-sm uppercase tracking-widest text-gray-300 mb-2">Kode Holland Anda</h3>
+                    <div class="flex justify-center gap-2 text-3xl font-bold text-[#FFE27A]">
+                        @foreach(session('topThree', []) as $type)
+                            <span>{{ substr($type, 0, 1) }}</span>
+                        @endforeach
+                    </div>
+                </div>
             </div>
 
-            {{-- Informasi Tambahan Kecil --}}
-            <p class="text-center text-gray-400 text-xs mt-6">
-                Hasil tes dapat dilihat pada menu "Riwayat Tes" di dashboard Anda.
-            </p>
+            {{-- KOLOM KANAN: DETAIL GRAFIK --}}
+            <div class="md:col-span-2 bg-white shadow-xl rounded-2xl p-8 animate-fade-in-up" style="animation-delay: 0.2s;">
+                <h3 class="text-xl font-bold text-[#0A2A43] mb-6 flex items-center gap-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    Analisis Skor Lengkap
+                </h3>
+
+                <div class="space-y-5">
+                    @php
+                        $scores = session('scores', []);
+                        // Mencari nilai max untuk menghitung persentase width bar
+                        $maxScore = max($scores) > 0 ? max($scores) : 1;
+                    @endphp
+
+                    @foreach($scores as $type => $score)
+                        @php
+                            // Hitung persentase untuk lebar bar (skala visual)
+                            $width = ($score / $maxScore) * 100;
+
+                            // Warna khusus untuk skor tertinggi
+                            $isTop = $type == session('topResult');
+                            $barColor = $isTop ? 'bg-[#FFE27A]' : 'bg-gray-200';
+                            $textColor = $isTop ? 'text-[#0A2A43] font-bold' : 'text-gray-500';
+                        @endphp
+
+                        <div>
+                            <div class="flex justify-between items-end mb-1">
+                                <span class="{{ $textColor }} text-sm">{{ $type }}</span>
+                                <span class="text-sm font-semibold text-gray-700">{{ $score }} Poin</span>
+                            </div>
+                            <div class="w-full bg-gray-100 rounded-full h-4 overflow-hidden">
+                                <div class="{{ $barColor }} h-4 rounded-full transition-all duration-1000 ease-out" style="width: {{ $width }}%"></div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="mt-10 flex justify-end">
+                    <a href="{{ route('dashboard') }}" class="flex items-center gap-2 bg-[#0A2A43] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#153e5e] transition shadow-lg">
+                        Kembali ke Dashboard
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
 
         </div>
     </main>
@@ -90,6 +144,5 @@
     <footer class="bg-[#0A2A43] text-white/70 text-center py-6 text-sm mt-auto">
         <p>Copyright &copy; SMKN 5 Malang {{ date('Y') }}. All rights reserved.</p>
     </footer>
-
 </body>
 </html>

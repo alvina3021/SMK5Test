@@ -13,6 +13,7 @@ use App\Models\MotivasiBelajarResult;
 use App\Models\StudiHabitResult;
 use App\Models\SosialEmosionalResult;
 use App\Models\PreferensiKelompok;
+use App\Models\AumResult;
 
 class DashboardController extends Controller
 {
@@ -31,6 +32,7 @@ class DashboardController extends Controller
         $statusStudiHabit      = StudiHabitResult::where('user_id', $userId)->exists();
         $statusSosialEmosional = SosialEmosionalResult::where('user_id', $userId)->exists();
         $statusPreferensi      = PreferensiKelompok::where('user_id', $userId)->exists();
+        $statusAum             = AumResult::where('user_id', $userId)->exists();
 
         // -----------------------------------------------------------
         // BAGIAN 2: AKTIVITAS TERKINI (DINAMIS)
@@ -61,6 +63,7 @@ class DashboardController extends Controller
         $addActivity(StudiHabitResult::class, 'Tes Studi Habit Selesai', 'Anda telah menyelesaikan tes kebiasaan belajar.');
         $addActivity(SosialEmosionalResult::class, 'Tes Sosial Emosional Selesai', 'Anda telah menyelesaikan asesmen kesehatan mental.');
         $addActivity(PreferensiKelompok::class, 'Tes Preferensi Kelompok Selesai', 'Anda telah menyelesaikan preferensi kerja kelompok.');
+        $addActivity(AumResult::class, 'Tes Alat Ungkap Masalah Selesai', 'Anda telah menyelesaikan identifikasi masalah umum.');
 
         // Urutkan array berdasarkan 'timestamp' (Terbaru di atas / Descending)
         usort($rawActivities, function ($a, $b) {
@@ -92,6 +95,7 @@ class DashboardController extends Controller
             'statusStudiHabit',
             'statusSosialEmosional',
             'statusPreferensi',
+            'statusAum',
             'aktivitas'
         ));
     }

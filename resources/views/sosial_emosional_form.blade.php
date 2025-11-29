@@ -151,26 +151,39 @@
         ];
     @endphp
 
+    {{-- HEADER / NAVIGATION BAR --}}
     <nav class="bg-[#0A2A43] text-white px-10 py-4 flex justify-between items-center shadow-lg sticky top-0 z-10">
         <div class="flex items-center gap-3">
             <span class="text-xl font-serif font-bold">SMK5TEST</span>
         </div>
 
         {{-- MENU NAVIGASI --}}
-        <ul class="gap-8 text-white/80 font-semibold hidden md:flex mx-auto">
+        <ul class="flex gap-8 text-white/80 font-semibold hidden md:flex mx-auto">
             <li><a href="{{ route('dashboard') }}" class="text-white hover:text-[#FFE27A] border-b-2 border-white pb-1">Dashboard</a></li>
             <li><a href="#" class="hover:text-white pb-1 border-b-2 border-transparent">Tes Saya</a></li>
-            <li><a href="#" class="hover:text-white pb-1 border-b-2 border-transparent">Materi</a></li>
         </ul>
 
-        {{-- PROFIL --}}
+        {{-- PROFIL & LOGOUT --}}
         @auth
-        <div class="flex items-center gap-3 ml-auto">
-            <span class="text-white text-base font-semibold hidden sm:block">{{ explode(' ', $user->name)[0] }}</span>
-            <div class="w-10 h-10 rounded-full bg-white text-[#0A2A43] flex items-center justify-center font-bold text-lg cursor-pointer">
-                {{ substr(explode(' ', $user->name)[0], 0, 1) }}
+        {{-- Link ke Halaman Profile --}}
+        <a href="{{ route('profile.index') }}" class="flex items-center gap-3 ml-auto hover:opacity-90 transition group">
+
+            {{-- Nama User --}}
+            <span class="text-white text-base font-semibold hidden sm:block group-hover:text-[#FFE27A] transition">
+                {{ explode(' ', $user->name)[0] }}
+            </span>
+
+            {{-- Avatar User --}}
+            <div class="w-10 h-10 rounded-full bg-white text-[#0A2A43] flex items-center justify-center font-bold text-lg cursor-pointer overflow-hidden border-2 border-transparent group-hover:border-[#FFE27A] transition">
+                @if($user->profile_photo_path)
+                    {{-- Tampilkan Foto Jika Ada --}}
+                    <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
+                @else
+                    {{-- Tampilkan Inisial Jika Tidak Ada Foto --}}
+                    {{ substr(explode(' ', $user->name)[0], 0, 1) }}
+                @endif
             </div>
-        </div>
+        </a>
         @endauth
     </nav>
 

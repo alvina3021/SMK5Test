@@ -24,6 +24,7 @@ class User extends Authenticatable
         'nis',      // Tambahkan ini
         'kelas',    // Tambahkan ini
         'jurusan',  // Tambahkan ini
+        'profile_photo_path'
     ];
 
     /**

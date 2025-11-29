@@ -11,6 +11,8 @@ use App\Http\Controllers\MotivasiBelajarController;
 use App\Http\Controllers\StudiHabitController;
 use App\Http\Controllers\SosialEmosionalController;
 use App\Http\Controllers\PreferensiKelompokController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AumController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -47,19 +49,45 @@ Route::middleware(['auth'])->group(function () {
 
 // STEP 1: DATA DIRI
         // HALAMAN 1 (Menggunakan /form)
-    Route::get('/data-pribadi/form', [DataPribadiController::class, 'form'])->name('data_pribadi.form');
-    Route::post('/data-pribadi/form', [DataPribadiController::class, 'storeForm'])->name('data_pribadi.store_form');
+    //Route::get('/data-pribadi/form', [DataPribadiController::class, 'form'])->name('data_pribadi.form');
+    //Route::post('/data-pribadi/form', [DataPribadiController::class, 'storeForm'])->name('data_pribadi.store_form');
 
     // STEP 2: DATA ORANG TUA
-    Route::get('/data-pribadi/step2', [DataPribadiController::class, 'step2'])->name('data_pribadi.step2');
-    Route::post('/data-pribadi/step2', [DataPribadiController::class, 'storeStep2'])->name('data_pribadi.store_step2');
+    //Route::get('/data-pribadi/step2', [DataPribadiController::class, 'step2'])->name('data_pribadi.step2');
+    //Route::post('/data-pribadi/step2', [DataPribadiController::class, 'storeStep2'])->name('data_pribadi.store_step2');
 
     // Step 3: Data Wali
-    Route::get('/data-pribadi/step3', [DataPribadiController::class, 'step3'])->name('data_pribadi.step3');
-    Route::post('/data-pribadi/step3', [DataPribadiController::class, 'storeStep3'])->name('data_pribadi.store_step3');
+    //Route::get('/data-pribadi/step3', [DataPribadiController::class, 'step3'])->name('data_pribadi.step3');
+    //Route::post('/data-pribadi/step3', [DataPribadiController::class, 'storeStep3'])->name('data_pribadi.store_step3');
 
     // Route Halaman Selesai
-    Route::get('/data-pribadi/selesai', [DataPribadiController::class, 'finish'])->name('data_pribadi.finish');
+    //Route::get('/data-pribadi/selesai', [DataPribadiController::class, 'finish'])->name('data_pribadi.finish');
+
+    // 1. HALAMAN UTAMA / INSTRUKSI (Ini target redirect 'data_pribadi')
+    Route::get('/data-pribadi', [DataPribadiController::class, 'instruksi'])
+         ->name('data_pribadi');
+
+    // 2. FORM STEP 1
+    Route::get('/data-pribadi/form', [DataPribadiController::class, 'form'])
+         ->name('data_pribadi.form');
+    Route::post('/data-pribadi/form', [DataPribadiController::class, 'storeForm'])
+         ->name('data_pribadi.store_form');
+
+    // 3. FORM STEP 2
+    Route::get('/data-pribadi/step2', [DataPribadiController::class, 'step2'])
+         ->name('data_pribadi.step2');
+    Route::post('/data-pribadi/step2', [DataPribadiController::class, 'storeStep2'])
+         ->name('data_pribadi.store_step2');
+
+    // 4. FORM STEP 3
+    Route::get('/data-pribadi/step3', [DataPribadiController::class, 'step3'])
+         ->name('data_pribadi.step3');
+    Route::post('/data-pribadi/step3', [DataPribadiController::class, 'storeStep3'])
+         ->name('data_pribadi.store_step3'); // <--- Ini yang dipanggil form step 3
+
+    // 5. HALAMAN FINISH (Opsional, karena 'instruksi' juga bisa menampilkan finish)
+    Route::get('/data-pribadi/finish', [DataPribadiController::class, 'finish'])
+         ->name('data_pribadi.finish');
 
     // --- RIASEC ROUTES ---
 
@@ -73,7 +101,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/riasec/tes', [RiasecController::class, 'store'])->name('riasec.store');
 
     // 4. Halaman Selesai (Opsional, karena index sudah menghandle ini)
-    Route::get('/riasec/selesai', [RiasecController::class, 'finish'])->name('riasec.finish');
+    //Route::get('/riasec/selesai', [RiasecController::class, 'finish'])->name('riasec.finish');
+
+    //5. menampilkan score
+    Route::get('/riasec/finish', [RiasecController::class, 'finish'])->name('riasec.finish');
 
     // Halaman Instruksi
     Route::get('/motivasi-belajar', [MotivasiBelajarController::class, 'index'])->name('motivasi.index');
@@ -137,4 +168,19 @@ Route::middleware(['auth'])->group(function () {
 
     // Halaman Selesai Tes Preferensi Kelompok
     Route::get('/preferensi-kelompok/selesai', [PreferensiKelompokController::class, 'finish'])->name('preferensi_kelompok.finish');
+
+    // --- PROFILE ROUTES ---
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
+    Route::post('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.updatePhoto');
+    Route::post('/logout', [ProfileController::class, 'logout'])->name('logout');
+
+    // AUM Routes
+    Route::get('/aum', [AumController::class, 'index'])->name('aum.index');
+    Route::get('/aum/form', [AumController::class, 'form'])->name('aum.form');
+    Route::post('/aum/step1', [AumController::class, 'storeStep1'])->name('aum.storeStep1'); // Menyimpan Langkah 1
+    Route::get('/aum/step2', [AumController::class, 'step2'])->name('aum.step2'); // Menampilkan Langkah 2 & 3
+    //Route::get('/aum/finish', [AumController::class, 'finish'])->name('aum.finish');
+    //Route::post('/aum/finish', [AumController::class, 'finish'])->name('aum.finish'); // Simpan Final
+    // Gabungkan GET dan POST ke method finish yang sama
+    Route::match(['get', 'post'], '/aum/finish', [AumController::class, 'finish'])->name('aum.finish');
 });
