@@ -17,7 +17,7 @@
         {{-- MENU NAVIGASI --}}
         <ul class="flex gap-8 text-white/80 font-semibold hidden md:flex mx-auto">
             <li><a href="{{ route('dashboard') }}" class="text-white hover:text-[#FFE27A] border-b-2 border-white pb-1">Dashboard</a></li>
-            <li><a href="#" class="hover:text-white pb-1 border-b-2 border-transparent">Tes Saya</a></li>
+            <li><a href="{{ route('tes.saya') }}" class="hover:text-white pb-1 border-b-2 border-transparent">Tes Saya</a></li>
         </ul>
 
         {{-- Profil Kecil di Pojok Kanan --}}

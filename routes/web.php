@@ -13,6 +13,7 @@ use App\Http\Controllers\SosialEmosionalController;
 use App\Http\Controllers\PreferensiKelompokController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AumController;
+use App\Http\Controllers\TesSayaController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -183,4 +184,7 @@ Route::middleware(['auth'])->group(function () {
     //Route::post('/aum/finish', [AumController::class, 'finish'])->name('aum.finish'); // Simpan Final
     // Gabungkan GET dan POST ke method finish yang sama
     Route::match(['get', 'post'], '/aum/finish', [AumController::class, 'finish'])->name('aum.finish');
+
+    //rute test saya
+    Route::get('/tes-saya', [TesSayaController::class, 'index'])->name('tes.saya');
 });

@@ -4,73 +4,89 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\MotivasiBelajarResult; // Pastikan Model di-import
+use App\Models\MotivasiBelajarResult;
 
 class MotivasiBelajarController extends Controller
 {
     /**
-     * HALAMAN PINTU MASUK (GATEKEEPER)
+     * HALAMAN PINTU MASUK (GATEKEEPER/INSTRUKSI)
+     * Route: motivasi.index
      */
     public function index()
     {
+        // 1. RESET SESSION: Bersihkan sisa data jika ada (Best Practice)
+        session()->forget(['motivasi_answers']);
+
         $user = Auth::user();
 
-        // 1. CEK DATABASE: Apakah user ini sudah mengerjakan?
-        $sudahMengerjakan = MotivasiBelajarResult::where('user_id', $user->id)->exists();
+        // 2. Ambil data terakhir untuk cek status di view
+        // (Misal untuk menampilkan: "Terakhir dikerjakan: 12 Jan 2024")
+        $result = MotivasiBelajarResult::where('user_id', $user->id)->latest()->first();
 
-        // 2. LOGIKA PENGALIHAN
-        if ($sudahMengerjakan) {
-            // JIKA SUDAH: Langsung tampilkan view Selesai
-            // Pastikan nama view sesuai file yang kamu buat (motivasi_finish.blade.php)
-            return view('motivasi_belajar_finish', compact('user'));
-        }
-
-        // JIKA BELUM: Tampilkan Halaman Instruksi
-        return view('motivasi_belajar', compact('user'));
+        return view('motivasi_belajar', compact('user', 'result'));
     }
 
     /**
      * HALAMAN FORM SOAL
+     * Route: motivasi.form
      */
     public function form()
     {
         $user = Auth::user();
 
-        // PROTEKSI: Jika sudah selesai, tendang ke index
-        if (MotivasiBelajarResult::where('user_id', $user->id)->exists()) {
-             return redirect()->route('motivasi.index');
-        }
+        // PERBAIKAN LOGIKA "ULANGI TES":
+        // Kita HAPUS pengecekan "if (exists) redirect".
+        // Tujuannya agar siswa BISA masuk ke sini lagi untuk mengerjakan ulang (Re-take).
 
+        // Form selalu dibuka dalam keadaan bersih karena kita tidak mengirim data jawaban lama.
         return view('motivasi_belajar_form', compact('user'));
     }
 
     /**
      * MENYIMPAN JAWABAN
+     * Route: motivasi.store
      */
     public function store(Request $request)
     {
         // 1. Ambil semua jawaban (kecuali token CSRF)
-        $data = $request->except('_token');
+        $answers = $request->except('_token');
 
-        // 2. Simpan ke Database
-        // Pastikan model MotivasiBelajarResult sudah memiliki $casts = ['answers' => 'array']
+        // 2. Validasi sederhana
+        if (empty($answers)) {
+            return back()->with('error', 'Mohon isi kuesioner terlebih dahulu.');
+        }
+
+        // 3. Simpan ke Database
+        // Gunakan CREATE agar tersimpan sebagai History (Riwayat baru).
+        // Nanti di TesSayaController, kita ambil yang latest().
         MotivasiBelajarResult::create([
             'user_id' => Auth::id(),
-            'answers' => $data,
-            // 'score' => ..., // Tambahkan logika hitung skor di sini jika nanti diperlukan
+            'answers' => $answers, // Pastikan model punya $casts = ['answers' => 'array']
+            // 'kelas' => Auth::user()->kelas ?? '-', // Uncomment jika tabel motivasi punya kolom kelas
         ]);
 
-        // 3. REDIRECT KE INDEX
-        // Method index() otomatis akan mendeteksi data sudah ada dan menampilkan halaman finish.
-        return redirect()->route('motivasi.index');
+        // 4. Redirect ke halaman FINISH (Hasil)
+        return redirect()->route('motivasi.finish')->with('success', 'Tes Motivasi Belajar berhasil disimpan!');
     }
 
     /**
-     * HALAMAN SELESAI (Opsional)
+     * HALAMAN SELESAI / HASIL
+     * Route: motivasi.finish
      */
     public function finish()
     {
         $user = Auth::user();
-        return view('motivasi_finish', compact('user'));
+
+        // Ambil hasil TERBARU (latest)
+        $result = MotivasiBelajarResult::where('user_id', $user->id)->latest()->first();
+
+        // Jika belum ada data (akses paksa URL), kembalikan ke form
+        if (!$result) {
+            return redirect()->route('motivasi.form');
+        }
+
+        // Tampilkan View Hasil
+        // Pastikan Anda membuat view 'motivasi_belajar_result' untuk menampilkan skor/interpretasi
+        return view('motivasi_belajar_result', compact('user', 'result'));
     }
 }

@@ -128,8 +128,8 @@
                 </div>
 
                 <div class="mt-10 flex justify-end">
-                    <a href="{{ route('dashboard') }}" class="flex items-center gap-2 bg-[#0A2A43] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#153e5e] transition shadow-lg">
-                        Kembali ke Dashboard
+                    <a href="{{ route('tes.saya') }}" class="flex items-center gap-2 bg-[#0A2A43] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#153e5e] transition shadow-lg">
+                        Kembali ke Tes Saya
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
                         </svg>

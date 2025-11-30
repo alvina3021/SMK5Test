@@ -376,22 +376,22 @@ class AumController extends Controller
             // 3. Hapus Session agar bersih
             session()->forget('aum_step1_ids');
 
-            // 4. Tampilkan View dengan data yang barusan disimpan
-            return view('aum_finish', compact('user', 'result'));
+            // 4. Redirect ke halaman instruksi dengan pesan sukses
+            return redirect()->route('aum.index')->with('success', 'Anda telah menyelesaikan Tes Alat Ungkap Masalah.');
         }
 
-        // SKENARIO 2: User membuka dari Dashboard (Method GET)
+        // SKENARIO 2: User melihat hasil via tombol "Lihat Hasil" (Method GET)
         else {
-            // Ambil data hasil tes TERAKHIR milik user ini
+            // Ambil data hasil tes TERBARU
             $result = AumResult::where('user_id', $user->id)->latest()->first();
 
-            // Jika belum pernah tes tapi maksa masuk url ini, lempar ke form
-            if (!$result) {
-                return redirect()->route('aum.form');
+            // Jika ada data, tampilkan halaman hasil
+            if ($result) {
+                return view('aum_finish', compact('user', 'result'));
             }
 
-            // Tampilkan View dengan data dari database
-            return view('aum_finish', compact('user', 'result'));
+            // Jika belum ada data, kembalikan ke halaman instruksi
+            return redirect()->route('aum.index');
         }
     }
 }

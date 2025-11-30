@@ -14,15 +14,16 @@ class DataPribadiController extends Controller
      */
     public function instruksi()
     {
-        $user = Auth::user();
-        // Cek apakah user sudah pernah mengisi data lengkap
-        $dataSiswa = SiswaData::where('user_id', $user->id)->first();
+        // RESET SESSION: Hapus data draft formulir sebelumnya saat masuk halaman instruksi
+        // Ini memastikan form bersih jika user memulai pengisian ulang
+        session()->forget(['data_pribadi_form', 'data_pribadi_step2']);
 
-        // Jika sudah lengkap, langsung tampilkan view finish
-        if ($dataSiswa) {
-            return view('data_pribadi_finish', compact('user', 'dataSiswa'));
-        }
-        return view('data_pribadi', compact('user'));
+        $user = Auth::user();
+        // Cek apakah user sudah pernah mengisi data lengkap (Ambil yang terbaru)
+        $dataSiswa = SiswaData::where('user_id', $user->id)->latest()->first();
+
+        // Tetap return view instruksi
+        return view('data_pribadi', compact('user', 'dataSiswa'));
     }
 
     /**
@@ -31,10 +32,12 @@ class DataPribadiController extends Controller
     public function form()
     {
         $user = Auth::user();
-        $dataSiswa = SiswaData::where('user_id', $user->id)->first();
 
-        // Jika data belum ada di DB, cek apakah ada di session (sedang diisi)
-        if (!$dataSiswa && session()->has('data_pribadi_form')) {
+        // PERBAIKAN: Jangan ambil dari Database agar form kosong saat diulang.
+        // Kita set null, lalu cek apakah ada session (jika user back dari step 2)
+        $dataSiswa = null;
+
+        if (session()->has('data_pribadi_form')) {
             $dataSiswa = new SiswaData(session('data_pribadi_form'));
         }
 
@@ -100,14 +103,15 @@ class DataPribadiController extends Controller
     {
         $user = Auth::user();
 
-        // Cek akses: harus ada session step 1 atau data di DB
-        if (!session()->has('data_pribadi_form') && !SiswaData::where('user_id', $user->id)->exists()) {
+        // Cek akses: User wajib punya session step 1 untuk masuk ke sini jika ingin fresh start
+        if (!session()->has('data_pribadi_form')) {
             return redirect()->route('data_pribadi.form');
         }
 
-        $dataSiswa = SiswaData::where('user_id', $user->id)->first();
+        // PERBAIKAN: Jangan ambil dari Database agar form kosong.
+        $dataSiswa = null;
 
-        if (!$dataSiswa && session()->has('data_pribadi_step2')) {
+        if (session()->has('data_pribadi_step2')) {
             $dataSiswa = new SiswaData(session('data_pribadi_step2'));
         }
 
@@ -133,7 +137,6 @@ class DataPribadiController extends Controller
             'pekerjaan_ibu' => 'nullable',
             'gaji_ibu' => 'required',
             'alamat_ibu' => 'nullable',
-            // Pastikan ini match dengan database (no_hp_ibu)
             'no_hp_ibu' => 'nullable',
         ]);
 
@@ -149,19 +152,20 @@ class DataPribadiController extends Controller
     {
         $user = Auth::user();
 
-        // Cek akses
-        if (!session()->has('data_pribadi_step2') && !SiswaData::where('user_id', $user->id)->exists()) {
+        // Cek akses: Wajib ada session step 2
+        if (!session()->has('data_pribadi_step2')) {
             return redirect()->route('data_pribadi.step2');
         }
 
-        $dataSiswa = SiswaData::where('user_id', $user->id)->first();
+        // PERBAIKAN: Jangan ambil dari Database, biarkan kosong kecuali ada session/inputan
+        // Karena step 3 biasanya tidak ada session sebelumnya (langsung simpan), kita set null
+        $dataSiswa = null;
 
         return view('data_pribadi_step3', compact('user', 'dataSiswa'));
     }
 
     /**
      * Simpan Langkah 3 & COMMIT KE DATABASE
-     * (Versi Final: Debugging dihapus, JSON Constraint Fixed)
      */
     public function storeStep3(Request $request)
     {
@@ -175,102 +179,90 @@ class DataPribadiController extends Controller
             'no_hp_wali' => 'nullable|string',
         ]);
 
-        // 2. Data Wali (Konversi string kosong jadi NULL)
+        // 2. Data Wali (PERBAIKAN UTAMA)
+        // Gunakan '-' (strip) jika field kosong. Ini mencegah error database jika kolom NOT NULL.
+        // Jika sebelumnya menggunakan '?: null', database akan menolak penyimpanan jika kolomnya wajib diisi.
         $dataWali = [
-            'nama_wali'         => $request->nama_wali ?: null,
-            'alamat_wali'       => $request->alamat_wali ?: null,
-            'pendidikan_wali'   => $request->pendidikan_wali ?: null,
-            'pekerjaan_wali'    => $request->pekerjaan_wali ?: null,
-            'penghasilan_wali'  => $request->penghasilan_wali ?: null,
-            'no_hp_wali'        => $request->no_hp_wali ?: null,
+            'nama_wali'         => $request->filled('nama_wali') ? $request->nama_wali : '-',
+            'alamat_wali'       => $request->filled('alamat_wali') ? $request->alamat_wali : '-',
+            'pendidikan_wali'   => $request->filled('pendidikan_wali') ? $request->pendidikan_wali : '-',
+            'pekerjaan_wali'    => $request->filled('pekerjaan_wali') ? $request->pekerjaan_wali : '-',
+            'penghasilan_wali'  => $request->filled('penghasilan_wali') ? $request->penghasilan_wali : '-',
+            'no_hp_wali'        => $request->filled('no_hp_wali') ? $request->no_hp_wali : '-',
         ];
 
         // 3. Ambil Data Session
         $sessionStep1 = session()->get('data_pribadi_form', []);
         $sessionStep2 = session()->get('data_pribadi_step2', []);
-        $existingData = SiswaData::where('user_id', Auth::id())->first();
 
         // 4. Cek Kelengkapan Data Session
-        // Jika session habis dan bukan mode edit, kembalikan ke awal
-        if (empty($sessionStep1) && !$existingData) {
+        // Jika session habis (user lompat url), kembalikan ke awal
+        if (empty($sessionStep1)) {
              return redirect()->route('data_pribadi.form')
                  ->with('error', 'Sesi data pribadi habis. Mohon isi dari awal.');
         }
 
         // 5. Gabungkan Data (Merge)
-        if ($existingData) {
-            $baseData = $existingData->toArray();
-            $finalData = array_merge($baseData, $sessionStep1, $sessionStep2, $dataWali);
-        } else {
-            $finalData = array_merge($sessionStep1, $sessionStep2, $dataWali);
-        }
+        // Kita HANYA menggabungkan data dari sesi dan input baru.
+        $finalData = array_merge($sessionStep1, $sessionStep2, $dataWali);
 
-        // Pastikan User ID
+        // Pastikan User ID selalu dari Auth
         $finalData['user_id'] = Auth::id();
 
-        // 6. Handle Array JSON (PERBAIKAN CONSTRAINT ERROR)
-        // Kita wajib memastikan data ini menjadi NULL atau JSON Valid String.
+        // 6. Handle Array JSON (Bantuan Pemerintah)
         if (!empty($finalData['bantuan_pemerintah'])) {
-             // Jika Array, encode jadi JSON
              if (is_array($finalData['bantuan_pemerintah'])) {
                  $finalData['bantuan_pemerintah'] = json_encode($finalData['bantuan_pemerintah']);
              }
-             // Jika String tapi belum JSON valid (misal teks biasa), bungkus jadi JSON
              elseif (is_string($finalData['bantuan_pemerintah'])) {
-                 // Cek apakah string ini valid JSON?
+                 // Cek validitas JSON string
                  json_decode($finalData['bantuan_pemerintah']);
                  if (json_last_error() !== JSON_ERROR_NONE) {
-                     // Jika error decode (bukan JSON), kita encode manual agar diterima DB
-                     // Kita bungkus dalam array [] agar konsisten dengan format checkbox
+                     // Jika bukan JSON valid, bungkus jadi array JSON
                      $finalData['bantuan_pemerintah'] = json_encode([$finalData['bantuan_pemerintah']]);
                  }
              }
         } else {
-             // Jika kosong, pastikan NULL explisit
+             // Pastikan null jika kosong
              $finalData['bantuan_pemerintah'] = null;
         }
 
         try {
             // 7. Simpan ke Database
-            SiswaData::updateOrCreate(
-                ['user_id' => Auth::id()],
-                $finalData
-            );
+            // Gunakan create() agar tersimpan sebagai ENTRY BARU (History)
+            // Ini memungkinkan tes diulang berkali-kali tanpa menimpa data lama.
+            SiswaData::create($finalData);
 
-            // 8. Hapus Session
+            // 8. Hapus Session agar bersih untuk penggunaan berikutnya
             $request->session()->forget(['data_pribadi_form', 'data_pribadi_step2']);
 
-            // 9. Redirect / Tampilkan View Finish
-            // Kita bypass redirect untuk menghindari 404 jika route belum diset,
-            // langsung tampilkan view finish dengan data terbaru.
-            $dataSiswaFinal = SiswaData::where('user_id', Auth::id())->first();
-
-            return view('data_pribadi_finish', [
-                'user' => Auth::user(),
-                'dataSiswa' => $dataSiswaFinal
-            ]);
+            // 9. Redirect ke halaman FINISH
+            return redirect()->route('data_pribadi.finish')->with('success', 'Data pribadi Anda berhasil disimpan.');
 
         } catch (\Exception $e) {
-            // DEBUG MODE (Opsional: Matikan dd jika sudah fix, nyalakan jika ingin melihat error lain)
-            // dd("DEBUG ERROR: " . $e->getMessage());
-
-            // Kembalikan ke form dengan pesan error user friendly
+            // Jika error, kembalikan ke form dengan pesan dan input lama
+            // Pesan error ini akan muncul jika penyimpanan gagal
             return back()->with('error', 'Gagal menyimpan: ' . $e->getMessage())->withInput();
         }
     }
 
     /**
      * Halaman Finish (Ringkasan Data)
+     * Menampilkan view data_pribadi_finish
      */
     public function finish()
     {
         $user = Auth::user();
-        $dataSiswa = SiswaData::where('user_id', $user->id)->first();
 
+        // Ambil data TERBARU (latest) untuk ditampilkan di halaman finish
+        $dataSiswa = SiswaData::where('user_id', $user->id)->latest()->first();
+
+        // Jika data belum ada, lempar kembali ke form
         if (!$dataSiswa) {
             return redirect()->route('data_pribadi.form');
         }
 
+        // Tampilkan halaman finish
         return view('data_pribadi_finish', compact('user', 'dataSiswa'));
     }
 }

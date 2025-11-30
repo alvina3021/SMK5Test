@@ -17,7 +17,7 @@
         {{-- MENU NAVIGASI --}}
         <ul class="flex gap-8 text-white/80 font-semibold hidden md:flex mx-auto">
             <li><a href="{{ route('dashboard') }}" class="text-white hover:text-[#FFE27A] border-b-2 border-white pb-1">Dashboard</a></li>
-            <li><a href="#" class="hover:text-white pb-1 border-b-2 border-transparent">Tes Saya</a></li>
+            <li><a href="{{ route('tes.saya') }}" class="hover:text-white pb-1 border-b-2 border-transparent">Tes Saya</a></li>
         </ul>
 
         {{-- PROFIL & LOGOUT --}}
@@ -133,10 +133,10 @@
 
                 {{-- FOOTER TOMBOL --}}
                 <div class="p-6 bg-gray-50 border-t border-gray-200 text-center">
-                    {{-- Tombol Kembali ke Dashboard --}}
-                <a href="{{ route('dashboard') }}" class="inline-block bg-[#0A2A43] text-white font-bold text-lg py-3 px-10 rounded-xl shadow-lg hover:bg-[#143d5e] hover:shadow-xl transform hover:-translate-y-1 transition duration-200">
-                    Kembali ke Dashboard
-                </a>
+                    {{-- Tombol Kembali ke Tes Saya (MODIFIKASI DISINI) --}}
+                    <a href="{{ route('tes.saya') }}" class="inline-block bg-[#0A2A43] text-white font-bold text-lg py-3 px-10 rounded-xl shadow-lg hover:bg-[#143d5e] hover:shadow-xl transform hover:-translate-y-1 transition duration-200">
+                        Kembali ke Tes Saya
+                    </a>
                 </div>
 
             </div>

@@ -99,6 +99,16 @@ class DashboardController extends Controller
             'aktivitas'
         ));
     }
+
+    public function testSaya() {
+    $user = Auth::user();
+    // ... logika cek status sama seperti index dashboard ...
+    return view('test_saya', compact('user', 'statusDataPribadi', 'statusAum', 'statusRiasec',
+            'statusMotivasi',
+            'statusStudiHabit',
+            'statusSosialEmosional',
+            'statusPreferensi',));
+    }
 }
 
 

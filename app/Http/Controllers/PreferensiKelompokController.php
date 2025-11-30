@@ -4,72 +4,84 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\PreferensiKelompok; // Pastikan Model di-import dengan benar
+use App\Models\PreferensiKelompok;
 
 class PreferensiKelompokController extends Controller
 {
     /**
      * HALAMAN PINTU MASUK (GATEKEEPER)
-     * Logika: Cek DB -> Jika ada ke Finish -> Jika tidak ke Instruksi
+     * Route: preferensi_kelompok.index
      */
     public function index()
     {
+        // 1. RESET SESSION: Bersihkan jika ada sisa session (Best Practice)
+        session()->forget(['preferensi_answers']);
+
         $user = Auth::user();
 
-        // 1. CEK DATABASE: Apakah user ini sudah mengerjakan?
-        $sudahMengerjakan = PreferensiKelompok::where('user_id', $user->id)->exists();
+        // 2. Ambil data terakhir untuk cek status di view
+        $result = PreferensiKelompok::where('user_id', $user->id)->latest()->first();
 
-        // 2. LOGIKA PENGALIHAN
-        if ($sudahMengerjakan) {
-            // JIKA SUDAH: Langsung tampilkan view Selesai
-            return view('preferensi_kelompok_finish', compact('user'));
-        }
-
-        // JIKA BELUM: Tampilkan Halaman Instruksi
-        return view('preferensi_kelompok', compact('user'));
+        return view('preferensi_kelompok', compact('user', 'result'));
     }
 
     /**
      * HALAMAN FORM SOAL
+     * Route: preferensi_kelompok.form
      */
     public function form()
     {
         $user = Auth::user();
 
-        // PROTEKSI: Jika sudah selesai, tendang balik ke index
-        if (PreferensiKelompok::where('user_id', $user->id)->exists()) {
-             return redirect()->route('preferensi_kelompok.index');
-        }
+        // PERBAIKAN LOGIKA "ULANGI TES":
+        // Kita HAPUS pengecekan "if (exists) redirect".
+        // Agar siswa BISA mengerjakan ulang (Re-take).
 
         return view('preferensi_kelompok_form', compact('user'));
     }
 
     /**
      * MENYIMPAN JAWABAN
+     * Route: preferensi_kelompok.store
      */
     public function store(Request $request)
     {
-        // 1. Ambil data jawaban (kecuali token)
+        // 1. Ambil data jawaban
         $data = $request->except('_token');
 
-        // 2. Simpan ke Database
-        // Pastikan model PreferensiKelompok memiliki properti $fillable dan $casts yang benar
+        // 2. Validasi sederhana
+        if (empty($data)) {
+            return back()->with('error', 'Mohon isi kuesioner terlebih dahulu.');
+        }
+
+        // 3. Simpan ke Database (History Baru)
         PreferensiKelompok::create([
             'user_id' => Auth::id(),
-            'answers' => $data,
+            'answers' => $data, // Pastikan model punya $casts = ['answers' => 'array']
         ]);
 
-        // 3. REDIRECT KE INDEX
-        // Method index() akan otomatis mendeteksi data sudah ada dan menampilkan halaman finish.
-        return redirect()->route('preferensi_kelompok.index');
+        // 4. Redirect ke halaman FINISH (Hasil)
+        return redirect()->route('preferensi_kelompok.finish')->with('success', 'Tes Preferensi Kelompok berhasil disimpan!');
     }
 
     /**
-     * HALAMAN SELESAI (Opsional)
+     * HALAMAN SELESAI / HASIL
+     * Route: preferensi_kelompok.finish
      */
     public function finish()
     {
         $user = Auth::user();
-        return view('preferensi_kelompok_finish', compact('user'));
+
+        // Ambil hasil TERBARU (latest)
+        $result = PreferensiKelompok::where('user_id', $user->id)->latest()->first();
+
+        // Jika belum ada data, kembalikan ke form
+        if (!$result) {
+            return redirect()->route('preferensi_kelompok.form');
+        }
+
+        // Tampilkan View Hasil
+        // Pastikan Anda membuat view 'preferensi_kelompok_result'
+        return view('preferensi_kelompok_result', compact('user', 'result'));
     }
 }

@@ -4,41 +4,36 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\StudiHabitResult; // Pastikan Model di-import
+use App\Models\StudiHabitResult;
 
 class StudiHabitController extends Controller
 {
     /**
      * HALAMAN PINTU MASUK (GATEKEEPER)
+     * Route: studi_habit.index
      */
     public function index()
     {
+        // 1. RESET SESSION: Bersihkan session step 1
+        session()->forget(['studi_habit_step1']);
+
         $user = Auth::user();
 
-        // 1. CEK DATABASE: Apakah user ini sudah mengerjakan?
-        $sudahMengerjakan = StudiHabitResult::where('user_id', $user->id)->exists();
+        // 2. Ambil data terakhir untuk status
+        $result = StudiHabitResult::where('user_id', $user->id)->latest()->first();
 
-        // 2. LOGIKA PENGALIHAN
-        if ($sudahMengerjakan) {
-            // JIKA SUDAH: Langsung tampilkan view Selesai
-            return view('studi_habit_finish', compact('user'));
-        }
-
-        // JIKA BELUM: Tampilkan Halaman Instruksi
-        return view('studi_habit', compact('user'));
+        return view('studi_habit', compact('user', 'result'));
     }
 
     /**
      * STEP 1: FORM SOAL KEBIASAAN BELAJAR
+     * Route: studi_habit.form
      */
     public function form()
     {
         $user = Auth::user();
 
-        // PROTEKSI: Jika sudah selesai, tendang ke index
-        if (StudiHabitResult::where('user_id', $user->id)->exists()) {
-             return redirect()->route('studi_habit.index');
-        }
+        // LOGIKA ULANGI TES: Hapus pengecekan exists() agar bisa re-take.
 
         return view('studi_habit_form', compact('user'));
     }
@@ -48,30 +43,26 @@ class StudiHabitController extends Controller
      */
     public function store(Request $request)
     {
-        // 1. Ambil Data
         $dataStep1 = $request->except('_token');
 
-        // 2. Simpan ke Session (Belum ke DB karena ada Step 2)
-        // Kita simpan dengan key 'studi_habit_step1'
+        // Simpan sementara ke session
         $request->session()->put('studi_habit_step1', $dataStep1);
 
-        // 3. Redirect ke Halaman Step 2
+        // Lanjut ke Step 2
         return redirect()->route('studi_habit.step2');
     }
 
     /**
      * STEP 2: GAYA BELAJAR
+     * Route: studi_habit.step2
      */
     public function step2()
     {
         $user = Auth::user();
 
-        // PROTEKSI 1: Jika sudah selesai di DB
-        if (StudiHabitResult::where('user_id', $user->id)->exists()) {
-             return redirect()->route('studi_habit.index');
-        }
+        // LOGIKA ULANGI TES: Hapus pengecekan exists().
 
-        // PROTEKSI 2: Jika user lompat langsung ke step 2 tanpa isi step 1
+        // PROTEKSI WAJIB: Harus lewat step 1 dulu
         if (!session()->has('studi_habit_step1')) {
             return redirect()->route('studi_habit.form');
         }
@@ -84,35 +75,42 @@ class StudiHabitController extends Controller
      */
     public function storeStep2(Request $request)
     {
-        // 1. Ambil Data Step 2
         $dataStep2 = $request->except('_token');
-
-        // 2. Ambil Data Step 1 dari Session
         $dataStep1 = session()->get('studi_habit_step1');
 
-        // 3. Gabungkan Semua Jawaban
+        // Gabungkan Jawaban
         $allAnswers = array_merge($dataStep1, $dataStep2);
 
-        // 4. Simpan ke Database
+        // Simpan ke Database (Create New History)
         StudiHabitResult::create([
             'user_id' => Auth::id(),
-            'answers' => $allAnswers, // Disimpan sebagai JSON (karena cast 'array' di Model)
+            'answers' => $allAnswers, // Cast array di Model
         ]);
 
-        // 5. Bersihkan Session
+        // Bersihkan Session
         $request->session()->forget('studi_habit_step1');
 
-        // 6. REDIRECT KE INDEX
-        // Method index() akan mendeteksi data sudah ada dan menampilkan halaman finish.
-        return redirect()->route('studi_habit.index');
+        // Redirect ke Finish
+        return redirect()->route('studi_habit.finish')->with('success', 'Tes Studi Habit berhasil disimpan!');
     }
 
     /**
-     * Halaman Selesai (Opsional)
+     * HALAMAN SELESAI / HASIL
+     * Route: studi_habit.finish
      */
     public function finish()
     {
         $user = Auth::user();
-        return view('studi_habit_finish', compact('user'));
+
+        // Ambil hasil TERBARU
+        $result = StudiHabitResult::where('user_id', $user->id)->latest()->first();
+
+        if (!$result) {
+            return redirect()->route('studi_habit.form');
+        }
+
+        // Tampilkan View Hasil
+        // Pastikan view 'studi_habit_result' ada
+        return view('studi_habit_result', compact('user', 'result'));
     }
 }
