@@ -22,6 +22,8 @@ class User extends Authenticatable
         'email',
         'password',
         'nis',      // Tambahkan ini
+        'role',     // Pastikan role ada
+        'nip',      // Pastikan nip ada
         'kelas',    // Tambahkan ini
         'jurusan',  // Tambahkan ini
         'profile_photo_path'
@@ -49,4 +51,33 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    // ==========================================
+    // TAMBAHAN RELASI (WAJIB ADA UNTUK DASHBOARD GURU)
+    // ==========================================
+
+    /**
+     * Relasi ke Tabel SiswaData (Data Pribadi)
+     * Satu User (Siswa) bisa punya banyak history pengisian data pribadi
+     */
+    public function siswaData()
+    {
+        return $this->hasMany(SiswaData::class, 'user_id');
+    }
+
+    /**
+     * Relasi ke Tabel RiasecResult
+     * Satu User (Siswa) bisa punya banyak history hasil tes RIASEC
+     */
+    public function riasecResult()
+    {
+        return $this->hasMany(RiasecResult::class, 'user_id');
+    }
+
+    // Jika nanti ada tes lain (AUM, Motivasi, dll), tambahkan juga di sini:
+    /*
+    public function aumResult()
+    {
+        return $this->hasMany(AumResult::class, 'user_id');
+    }
+    */
 }

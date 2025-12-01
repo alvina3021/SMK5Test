@@ -14,6 +14,7 @@ use App\Http\Controllers\PreferensiKelompokController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AumController;
 use App\Http\Controllers\TesSayaController;
+use App\Http\Controllers\GuruDashboardController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -36,10 +37,17 @@ Route::post('/daftar', [RegisterController::class, 'store'])->name('daftar.store
 // RUTE LOGIN (Tambahkan ini)
 Route::get('/login', [LoginController::class, 'index'])->name('login');
 Route::post('/login', [LoginController::class, 'authenticate'])->name('login.authenticate');
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout'); // Pastikan method logout ada di LoginController
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+// --- DASHBOARD GURU ---
+    // Route ini yang dipanggil oleh: return redirect()->route('guru.dashboard');
+    Route::get('/guru/dashboard', [GuruDashboardController::class, 'index'])
+        ->name('guru.dashboard');
 });
+
 
 Route::middleware(['auth'])->group(function () {
     // 2. Rute Halaman Instruksi (Menggunakan data_pribadi.blade.php)

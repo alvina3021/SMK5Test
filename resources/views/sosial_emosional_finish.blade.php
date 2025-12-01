@@ -3,50 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Selesai - SMK5TEST</title>
+    <title>Hasil Kesehatan Mental - SMK5TEST</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <style>
-        /* Animasi kustom untuk ikon sukses */
-        @keyframes bounce-slow {
-            0%, 100% { transform: translateY(-5%); }
-            50% { transform: translateY(5%); }
-        }
-        .animate-bounce-slow {
-            animation: bounce-slow 2s infinite;
-        }
-    </style>
 </head>
 <body class="bg-[#F4F1FF] min-h-screen flex flex-col font-sans">
 
     {{-- HEADER / NAVIGATION BAR --}}
-    <nav class="bg-[#0A2A43] text-white px-10 py-4 flex justify-between items-center shadow-lg sticky top-0 z-10">
+    <nav class="bg-[#0A2A43] text-white px-6 md:px-10 py-4 flex justify-between items-center shadow-lg sticky top-0 z-20">
         <div class="flex items-center gap-3">
             <span class="text-xl font-serif font-bold">SMK5TEST</span>
         </div>
-
-        {{-- MENU NAVIGASI --}}
         <ul class="flex gap-8 text-white/80 font-semibold hidden md:flex mx-auto">
-            <li><a href="{{ route('dashboard') }}" class="text-white hover:text-[#FFE27A] border-b-2 border-white pb-1">Dashboard</a></li>
-            <li><a href="#" class="hover:text-white pb-1 border-b-2 border-transparent">Tes Saya</a></li>
+            <li><a href="{{ route('dashboard') }}" class="hover:text-white pb-1 border-b-2 border-transparent transition">Dashboard</a></li>
+            <li><a href="{{ route('tes.saya') }}" class="text-white border-b-2 border-white pb-1">Tes Saya</a></li>
         </ul>
-
-        {{-- PROFIL & LOGOUT --}}
         @auth
-        {{-- Link ke Halaman Profile --}}
         <a href="{{ route('profile.index') }}" class="flex items-center gap-3 ml-auto hover:opacity-90 transition group">
-
-            {{-- Nama User --}}
             <span class="text-white text-base font-semibold hidden sm:block group-hover:text-[#FFE27A] transition">
                 {{ explode(' ', $user->name)[0] }}
             </span>
-
-            {{-- Avatar User --}}
             <div class="w-10 h-10 rounded-full bg-white text-[#0A2A43] flex items-center justify-center font-bold text-lg cursor-pointer overflow-hidden border-2 border-transparent group-hover:border-[#FFE27A] transition">
                 @if($user->profile_photo_path)
-                    {{-- Tampilkan Foto Jika Ada --}}
                     <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
                 @else
-                    {{-- Tampilkan Inisial Jika Tidak Ada Foto --}}
                     {{ substr(explode(' ', $user->name)[0], 0, 1) }}
                 @endif
             </div>
@@ -55,53 +34,58 @@
     </nav>
 
     {{-- KONTEN UTAMA --}}
-    <main class="grow flex items-center justify-center py-10 px-4 sm:px-6 lg:px-8">
-        <div class="w-full max-w-lg mx-auto">
+    <main class="grow py-10 px-4 md:px-10 flex items-center justify-center">
+        <div class="max-w-3xl w-full">
 
-            {{-- KARTU SUKSES --}}
-            <div class="bg-white shadow-2xl rounded-2xl p-8 md:p-12 text-center relative overflow-hidden border-t-8 border-[#0A2A43]">
+            {{-- KARTU HASIL --}}
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200 mb-8 text-center">
 
-                {{-- Hiasan Garis Kuning --}}
-                <div class="absolute top-0 left-0 w-full h-1 bg-[#FFE27A]"></div>
-
-                {{-- Ikon Sukses Animasi --}}
-                <div class="mx-auto flex items-center justify-center h-24 w-24 rounded-full bg-green-50 mb-6 animate-bounce-slow ring-8 ring-green-100/50">
-                    <svg class="h-12 w-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                    </svg>
+                <div class="bg-[#0A2A43] text-white p-8">
+                    <h1 class="text-2xl font-bold mb-2">Hasil Tes Sosial Emosional</h1>
+                    <p class="text-white/80 text-sm">Analisis kesejahteraan mental dan stabilitas emosi Anda saat ini.</p>
                 </div>
 
-                {{-- Judul --}}
-                <h2 class="text-3xl font-bold text-[#0A2A43] mb-3">Terima Kasih!</h2>
-                <h3 class="text-lg font-semibold text-gray-700 mb-6">Jawaban Anda Berhasil Disimpan</h3>
+                <div class="p-8 md:p-12">
 
-                {{-- Pesan --}}
-                <p class="text-gray-500 mb-8 leading-relaxed">
-                    Anda telah menyelesaikan Tes Sosial Emosional dan Kesehatan Mental.<br>
-                    Sistem kami sedang menganalisis jawaban Anda untuk memberikan insights mendalam tentang kecerdasan emosional dan kesejahteraan mental Anda.
-                </p>
+                    {{-- SKOR UTAMA --}}
+                    <div class="mb-6">
+                        <span class="block text-gray-500 text-sm font-semibold uppercase tracking-wider mb-2">Skor Kesehatan Mental (KesMen)</span>
+                        <div class="text-6xl font-extrabold text-[#0A2A43]">
+                            {{ session('score', 0) }}
+                        </div>
+                    </div>
 
-                {{-- Tombol Kembali --}}
-                <a href="{{ route('dashboard') }}" class="inline-flex items-center justify-center gap-2 bg-[#0A2A43] text-white font-bold text-base py-3 px-8 rounded-xl shadow-lg hover:bg-[#143d5e] hover:shadow-xl transform hover:-translate-y-1 transition duration-200 w-full sm:w-auto">
-                    <span>Kembali ke Dashboard</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                    </svg>
-                </a>
+                    {{-- KATEGORI --}}
+                    <div class="mb-8">
+                        <span class="inline-block px-6 py-2 rounded-full text-lg font-bold border {{ session('category_color') }}">
+                            {{ session('category_name') }}
+                        </span>
+                    </div>
+
+                    {{-- DESKRIPSI --}}
+                    <div class="bg-gray-50 rounded-xl p-6 text-left border-l-4 border-[#0A2A43]">
+                        <h3 class="font-bold text-[#0A2A43] mb-2 text-lg">Interpretasi:</h3>
+                        <p class="text-gray-700 leading-relaxed">
+                            {{ session('category_desc') }}
+                        </p>
+                    </div>
+
+                </div>
+
+                {{-- TOMBOL AKSI --}}
+                <div class="bg-gray-50 p-6 border-t border-gray-100 flex justify-center gap-4">
+                    <a href="{{ route('tes.saya') }}" class="bg-[#0A2A43] text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-[#143d5e] transition">
+                        Kembali ke Tes Saya
+                    </a>
+                </div>
 
             </div>
-
-            {{-- Informasi Tambahan Kecil --}}
-            <p class="text-center text-gray-400 text-xs mt-6">
-                Hasil tes dapat dilihat pada menu "Riwayat Tes" di dashboard Anda.
-            </p>
 
         </div>
     </main>
 
-    {{-- FOOTER --}}
-    <footer class="bg-[#0A2A43] text-white/70 text-center py-6 text-sm mt-auto">
-        <p>Copyright &copy; SMKN 5 Malang {{ date('Y') }}. All rights reserved.</p>
+    <footer class="bg-[#0A2A43] text-white text-center py-5 text-sm mt-auto">
+        Copyright (c) SMKN 5 Malang {{ date('Y') }}. All rights reserved.
     </footer>
 
 </body>
