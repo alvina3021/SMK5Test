@@ -169,65 +169,78 @@ class RiasecController extends Controller
      * Halaman Hasil (Finish)
      * Route: riasec.finish
      */
+    /**
+     * UPDATE PADA FUNGSI FINISH
+     */
     public function finish()
     {
         $user = Auth::user();
 
-        // 1. Ambil hasil tes TERBARU (latest)
+        // 1. Ambil hasil tes TERBARU
         $result = RiasecResult::where('user_id', $user->id)->latest()->first();
 
-        // Jika belum ada data, kembalikan ke halaman instruksi
         if (!$result) {
             return redirect()->route('riasec.index');
         }
 
-        // 2. LOGIKA PERHITUNGAN SKOR
-        // Pastikan jawaban berupa array (terkadang JSON string dari DB)
+        // 2. HITUNG SKOR (LOGIKA BARU SESUAI VIEW ANDA)
         $answers = is_string($result->answers) ? json_decode($result->answers, true) : $result->answers;
+        if (!is_array($answers)) $answers = [];
 
-        // Inisialisasi skor awal
+        // Inisialisasi Skor
         $scores = ['R' => 0, 'I' => 0, 'A' => 0, 'S' => 0, 'E' => 0, 'C' => 0];
 
-        // Hitung skor berdasarkan jawaban
-        if (is_array($answers)) {
-            foreach ($answers as $key => $val) {
-                // Logika 1: Jika format input grouped array name="R[]" (Checkboxes)
-                if (array_key_exists($key, $scores) && is_array($val)) {
-                    $scores[$key] = count($val);
-                }
-                // Logika 2: Jika format input flat name="R_1" => "on" (Fallback)
-                else {
-                    $type = substr($key, 0, 1); // Ambil huruf depan (R, I, A...)
-                    if (array_key_exists($type, $scores)) {
-                        $scores[$type]++; // Tambah poin
+        foreach ($answers as $key => $val) {
+            // Format Key dari View: "ans_realistic-r_0"
+
+            // Cek apakah key dimulai dengan "ans_"
+            if (str_starts_with($key, 'ans_')) {
+                // Kita perlu ekstrak huruf kodenya (r, i, a, s, e, c)
+                // Contoh: "ans_realistic-r_0" -> Kita cari "-r_" atau huruf sebelum underscore terakhir
+
+                $parts = explode('_', $key);
+                // $parts[0] = "ans"
+                // $parts[1] = "realistic-r" (SLUG KATEGORI)
+                // $parts[2] = "0" (INDEX)
+
+                if (isset($parts[1])) {
+                    $slug = $parts[1]; // "realistic-r", "social-s", dll.
+
+                    // Ambil huruf terakhir dari slug (r, i, a, s, e, c)
+                    $codeChar = strtoupper(substr($slug, -1));
+
+                    // Pastikan hurufnya valid (R, I, A, S, E, C)
+                    if (array_key_exists($codeChar, $scores)) {
+                        // Tambahkan nilai (1-5) ke skor kategori tersebut
+                        // Pastikan $val adalah angka (integer)
+                        $scores[$codeChar] += (int)$val;
                     }
                 }
             }
         }
 
-        // 3. Urutkan Skor (Tertinggi ke Terendah)
+        // 3. Urutkan Skor (Tertinggi -> Terendah)
         arsort($scores);
 
-        // Ambil 3 Kode Teratas (Top 3)
+        // 4. Ambil 3 Kode Teratas
         $topThreeKeys = array_keys(array_slice($scores, 0, 3));
-        // Ambil Kode Paling Dominan (Top 1)
-        $topKey = array_key_first($scores);
+        $riasecCode = implode('', $topThreeKeys);
+        $topKey = $topThreeKeys[0] ?? 'R';
 
-        // 4. Ambil Deskripsi Berdasarkan Kode Dominan
+        // 5. Ambil Deskripsi & Karir
         $descriptions = $this->getDescriptions();
         $topResultName = $descriptions[$topKey]['name'] ?? $topKey;
         $topDescription = $descriptions[$topKey]['desc'] ?? 'Deskripsi tidak tersedia.';
 
-        // 5. KIRIM DATA KE VIEW MELALUI SESSION (FLASH DATA)
-        // session()->now() membuat data tersedia hanya untuk request ini (saat view dirender)
-        // View Anda (riasec_finish.blade.php) menggunakan session('key') untuk menampilkan data ini
+
+        // 6. KIRIM DATA KE VIEW
         session()->now('topResult', $topResultName);
+        session()->now('riasecCode', $riasecCode);
         session()->now('description', $topDescription);
         session()->now('topThree', $topThreeKeys);
         session()->now('scores', $scores);
 
-        // 6. Tampilkan View Hasil
-        // Pastikan nama file view sesuai: 'riasec_finish'
         return view('riasec_finish', compact('user', 'result'));
     }
 }
+
