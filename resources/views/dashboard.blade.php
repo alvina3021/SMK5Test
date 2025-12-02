@@ -125,9 +125,7 @@
                         elseif ($card['title'] == 'Studi Habit & Gaya Belajar') $url = route('studi_habit.index');
                         elseif ($card['title'] == 'Sosial Emosional & Kesehatan Mental') $url = route('sosial_emosional.index');
                         elseif ($card['title'] == 'Preferensi Kelompok & Kebutuhan Sosial') $url = route('preferensi_kelompok.index');
-                        elseif ($card['title'] == 'Alat Ungkap Masalah') {
-                            $url = $card['completed'] ? route('aum.finish') : route('aum.index');
-                        }
+                        elseif ($card['title'] == 'Alat Ungkap Masalah') $url = route('aum.index');
                     @endphp
 
                     <a href="{{ $url }}" class="bg-white shadow rounded-xl p-5 border border-gray-100 transform hover:shadow-lg transition duration-200 cursor-pointer block h-full flex flex-col justify-between group">

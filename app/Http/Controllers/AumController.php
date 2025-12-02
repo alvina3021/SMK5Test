@@ -274,8 +274,18 @@ class AumController extends Controller
      */
     public function index()
     {
+        // 1. RESET SESSION: Penting agar bisa retake (mengulang tes)
+        // Hapus data pilihan masalah dari tes sebelumnya/setengah jalan
+        session()->forget(['aum_step1_ids']);
+
         $user = Auth::user();
-        return view('aum', compact('user'));
+
+        // 2. (Opsional) Ambil hasil tes TERBARU untuk dikirim ke view
+        // Ini berguna jika di halaman depan AUM Anda ingin menampilkan info: "Anda terakhir tes pada tanggal sekian"
+        $result = AumResult::where('user_id', $user->id)->latest()->first();
+
+        // 3. Tampilkan halaman depan (Landing Page AUM)
+        return view('aum', compact('user', 'result'));
     }
 
     /**
@@ -351,47 +361,48 @@ class AumController extends Controller
     {
         $user = Auth::user();
 
-        // SKENARIO 1: User baru saja klik tombol "SELESAI" di Langkah 2 (Method POST)
+        // --- SKENARIO 1: PROSES SIMPAN (Method POST dari Step 2) ---
         if ($request->isMethod('post')) {
 
-            // 1. Ambil Data dari Session & Input Form
+            // 1. Ambil Data
             $step1Ids = session('aum_step1_ids', []);
             $heavyProblemDesc = $request->input('heavy_problem_desc');
 
             $consultationData = [
                 'ingin_bantuan'    => $request->input('q_c'),
                 'ingin_bicara'     => $request->input('q_a'),
-                'mitra_bicara'     => $request->input('q_b', []),
-                'waktu_konsultasi' => $request->input('q_d'),
+                'mitra_bicara'     => $request->input('q_b', []), // Array checkbox
+                'waktu_konsultasi' => $request->input('q_d')
             ];
 
-            // 2. Simpan ke Database (Create Baru)
-            $result = AumResult::create([
+            // 2. Simpan ke Database (Create History Baru)
+            AumResult::create([
                 'user_id'           => Auth::id(),
-                'selected_problems' => $step1Ids,
-                'heavy_problems'    => ['description' => $heavyProblemDesc],
-                'consultation_data' => $consultationData
+                'selected_problems' => $step1Ids, // Pastikan Model dicast 'array'
+                'heavy_problems'    => ['description' => $heavyProblemDesc], // Simpan sbg JSON
+                'consultation_data' => $consultationData // Simpan sbg JSON
             ]);
 
-            // 3. Hapus Session agar bersih
+            // 3. Bersihkan Session
             session()->forget('aum_step1_ids');
 
-            // 4. Redirect ke halaman instruksi dengan pesan sukses
-            return redirect()->route('aum.index')->with('success', 'Anda telah menyelesaikan Tes Alat Ungkap Masalah.');
+            // 4. Redirect ke DIRI SENDIRI (GET) untuk menampilkan hasil
+            // PERBAIKAN UTAMA: Jangan redirect ke index!
+            return redirect()->route('aum.finish')->with('success', 'Tes AUM berhasil diselesaikan!');
         }
 
-        // SKENARIO 2: User melihat hasil via tombol "Lihat Hasil" (Method GET)
+        // --- SKENARIO 2: TAMPILKAN HASIL (Method GET) ---
         else {
             // Ambil data hasil tes TERBARU
             $result = AumResult::where('user_id', $user->id)->latest()->first();
 
-            // Jika ada data, tampilkan halaman hasil
-            if ($result) {
-                return view('aum_finish', compact('user', 'result'));
+            // Jika belum ada data, lempar ke instruksi
+            if (!$result) {
+                return redirect()->route('aum.index');
             }
 
-            // Jika belum ada data, kembalikan ke halaman instruksi
-            return redirect()->route('aum.index');
+            // Tampilkan View Hasil
+            return view('aum_finish', compact('user', 'result'));
         }
     }
 }

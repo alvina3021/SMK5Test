@@ -15,7 +15,7 @@ class GuruSeeder extends Seeder
     {
         // 1. Akun Guru (Wajib ada NIP, NIS & Kelas Null)
         User::create([
-            'name' => 'Bapak Guru BK',
+            'name' => 'Bu Nurul Dwariyati',
             'email' => 'guru@smkn5malang.sch.id',
             'password' => Hash::make('password123'),
             'role' => 'guru',
