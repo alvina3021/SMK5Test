@@ -3,50 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Selesai - SMK5TEST</title>
+    <title>Hasil Studi Habit & Gaya Belajar - SMK5TEST</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <style>
-        /* Animasi kustom untuk ikon sukses */
-        @keyframes bounce-slow {
-            0%, 100% { transform: translateY(-5%); }
-            50% { transform: translateY(5%); }
-        }
-        .animate-bounce-slow {
-            animation: bounce-slow 2s infinite;
-        }
-    </style>
 </head>
 <body class="bg-[#F4F1FF] min-h-screen flex flex-col font-sans">
 
-    {{-- HEADER / NAVIGATION BAR --}}
-    <nav class="bg-[#0A2A43] text-white px-10 py-4 flex justify-between items-center shadow-lg sticky top-0 z-10">
+    {{-- HEADER (Sama seperti sebelumnya) --}}
+    <nav class="bg-[#0A2A43] text-white px-6 md:px-10 py-4 flex justify-between items-center shadow-lg sticky top-0 z-20">
         <div class="flex items-center gap-3">
             <span class="text-xl font-serif font-bold">SMK5TEST</span>
         </div>
-
-        {{-- MENU NAVIGASI --}}
         <ul class="flex gap-8 text-white/80 font-semibold hidden md:flex mx-auto">
-            <li><a href="{{ route('dashboard') }}" class="text-white hover:text-[#FFE27A] border-b-2 border-white pb-1">Dashboard</a></li>
-            <li><a href="#" class="hover:text-white pb-1 border-b-2 border-transparent">Tes Saya</a></li>
+            <li><a href="{{ route('dashboard') }}" class="hover:text-white pb-1 border-b-2 border-transparent transition">Dashboard</a></li>
+            <li><a href="#" class="text-white border-b-2 border-white pb-1">Tes Saya</a></li>
         </ul>
-
-        {{-- PROFIL & LOGOUT --}}
         @auth
-        {{-- Link ke Halaman Profile --}}
         <a href="{{ route('profile.index') }}" class="flex items-center gap-3 ml-auto hover:opacity-90 transition group">
-
-            {{-- Nama User --}}
             <span class="text-white text-base font-semibold hidden sm:block group-hover:text-[#FFE27A] transition">
                 {{ explode(' ', $user->name)[0] }}
             </span>
-
-            {{-- Avatar User --}}
             <div class="w-10 h-10 rounded-full bg-white text-[#0A2A43] flex items-center justify-center font-bold text-lg cursor-pointer overflow-hidden border-2 border-transparent group-hover:border-[#FFE27A] transition">
                 @if($user->profile_photo_path)
-                    {{-- Tampilkan Foto Jika Ada --}}
                     <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
                 @else
-                    {{-- Tampilkan Inisial Jika Tidak Ada Foto --}}
                     {{ substr(explode(' ', $user->name)[0], 0, 1) }}
                 @endif
             </div>
@@ -55,53 +34,102 @@
     </nav>
 
     {{-- KONTEN UTAMA --}}
-    <main class="grow flex items-center justify-center py-10 px-4 sm:px-6 lg:px-8">
-        <div class="w-full max-w-lg mx-auto">
+    <main class="grow py-10 px-4 md:px-10 flex justify-center">
+        <div class="max-w-4xl w-full space-y-8">
 
-            {{-- KARTU SUKSES --}}
-            <div class="bg-white shadow-2xl rounded-2xl p-8 md:p-12 text-center relative overflow-hidden border-t-8 border-[#0A2A43]">
-
-                {{-- Hiasan Garis Kuning --}}
-                <div class="absolute top-0 left-0 w-full h-1 bg-[#FFE27A]"></div>
-
-                {{-- Ikon Sukses Animasi --}}
-                <div class="mx-auto flex items-center justify-center h-24 w-24 rounded-full bg-green-50 mb-6 animate-bounce-slow ring-8 ring-green-100/50">
-                    <svg class="h-12 w-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                </div>
-
-                {{-- Judul --}}
-                <h2 class="text-3xl font-bold text-[#0A2A43] mb-3">Terima Kasih!</h2>
-                <h3 class="text-lg font-semibold text-gray-700 mb-6">Jawaban Anda Berhasil Disimpan</h3>
-
-                {{-- Pesan --}}
-                <p class="text-gray-500 mb-8 leading-relaxed">
-                    Anda telah menyelesaikan Tes Gaya Belajar.<br>
-                    Sistem kami sedang menganalisis jawaban Anda untuk menentukan gaya belajar yang paling sesuai dengan Anda.
-                </p>
-
-                {{-- Tombol Kembali --}}
-                <a href="{{ route('dashboard') }}" class="inline-flex items-center justify-center gap-2 bg-[#0A2A43] text-white font-bold text-base py-3 px-8 rounded-xl shadow-lg hover:bg-[#143d5e] hover:shadow-xl transform hover:-translate-y-1 transition duration-200 w-full sm:w-auto">
-                    <span>Kembali ke Dashboard</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                    </svg>
-                </a>
-
+            {{-- JUDUL HALAMAN --}}
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-[#0A2A43]">Laporan Analisis Belajar</h1>
+                <p class="text-gray-600 mt-2">Berikut adalah hasil analisis kebiasaan dan gaya belajar Anda</p>
             </div>
 
-            {{-- Informasi Tambahan Kecil --}}
-            <p class="text-center text-gray-400 text-xs mt-6">
-                Hasil tes dapat dilihat pada menu "Riwayat Tes" di dashboard Anda.
-            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                {{-- KARTU 1: HASIL STUDI HABIT (KEBIASAAN BELAJAR) --}}
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 flex flex-col">
+                    <div class="bg-[#0A2A43] text-white p-6">
+                        <h2 class="text-xl font-bold flex items-center gap-2">
+                            <span>📚</span> Kebiasaan Belajar
+                        </h2>
+                    </div>
+                    <div class="p-8 flex-grow flex flex-col items-center justify-center text-center">
+
+                        <div class="text-gray-500 font-medium mb-2">Skor Anda</div>
+                        <div class="text-5xl font-extrabold text-[#0A2A43] mb-4">
+                            {{ session('habitScore') }} <span class="text-lg text-gray-400 font-normal">/ 60</span>
+                        </div>
+
+                        {{-- Kategori Badge --}}
+                        <div class="px-6 py-2 rounded-full font-bold text-lg mb-6 {{ session('habitColor') }}">
+                            {{ session('habitCategory') }}
+                        </div>
+
+                        <p class="text-gray-600 text-sm leading-relaxed">
+                            @if(session('habitScore') >= 48)
+                                Luar biasa! Anda memiliki disiplin dan kebiasaan belajar yang sangat efektif. Pertahankan!
+                            @elseif(session('habitScore') >= 36)
+                                Bagus. Anda sudah memiliki dasar kebiasaan yang baik, namun masih bisa ditingkatkan lagi agar lebih maksimal.
+                            @else
+                                Perlu perhatian. Sebaiknya Anda mulai menjadwalkan waktu belajar yang lebih teratur dan mengurangi gangguan.
+                            @endif
+                        </p>
+                    </div>
+                </div>
+
+                {{-- KARTU 2: HASIL GAYA BELAJAR --}}
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 flex flex-col">
+                    <div class="bg-[#FFE27A] text-[#0A2A43] p-6">
+                        <h2 class="text-xl font-bold flex items-center gap-2">
+                            <span>🧠</span> Gaya Belajar Dominan
+                        </h2>
+                    </div>
+                    <div class="p-8 flex-grow">
+
+                        {{-- Hasil Dominan --}}
+                        <div class="text-center mb-8">
+                            <div class="text-gray-500 font-medium mb-1">Tipe Belajar Anda:</div>
+                            <h3 class="text-3xl font-bold text-[#0A2A43] mb-2 uppercase tracking-wide">
+                                {{ session('dominantStyle') }}
+                            </h3>
+                            <p class="text-gray-600 text-sm italic">"{{ session('dominantDesc') }}"</p>
+                        </div>
+
+                        {{-- Grafik Bar Sederhana --}}
+                        <div class="space-y-4">
+                            @foreach(session('styleScores', []) as $style => $score)
+                                {{-- Hitung Persentase (Max Score per gaya = 4 soal * 5 = 20) --}}
+                                @php $percent = ($score / 20) * 100; @endphp
+                                <div>
+                                    <div class="flex justify-between text-sm font-bold text-gray-700 mb-1">
+                                        <span>{{ $style }}</span>
+                                        <span>{{ $score }} Poin</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                                        <div class="h-3 rounded-full transition-all duration-1000 ease-out
+                                            {{ $style == 'Visual' ? 'bg-blue-500' : ($style == 'Auditori' ? 'bg-green-500' : 'bg-orange-500') }}"
+                                            style="width: {{ $percent }}%"></div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            {{-- TOMBOL AKSI --}}
+            <div class="flex justify-center mt-8">
+                <a href="{{ route('tes.saya') }}" class="bg-[#0A2A43] text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-[#143d5e] transition transform hover:-translate-y-1">
+                    Kembali ke Tes Saya
+                </a>
+            </div>
 
         </div>
     </main>
 
     {{-- FOOTER --}}
-    <footer class="bg-[#0A2A43] text-white/70 text-center py-6 text-sm mt-auto">
-        <p>Copyright &copy; SMKN 5 Malang {{ date('Y') }}. All rights reserved.</p>
+    <footer class="bg-[#0A2A43] text-white text-center py-5 text-sm mt-auto">
+        Copyright (c) SMKN 5 Malang {{ date('Y') }}. All rights reserved.
     </footer>
 
 </body>

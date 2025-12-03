@@ -17,7 +17,7 @@ class StudiHabitResult extends Model
     ];
 
     protected $casts = [
-        'answers' => 'array',
+    'answers' => 'array',
     ];
 
     public function user()
