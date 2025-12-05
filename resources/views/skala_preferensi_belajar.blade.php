@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instruksi Skala Preferensi Belajar - SMK5TEST</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
+<body class="bg-[#F4F1FF] min-h-screen flex flex-col">
+
+    {{-- HEADER / NAVIGATION BAR --}}
+    <nav class="bg-[#0A2A43] text-white px-10 py-4 flex justify-between items-center shadow-lg sticky top-0 z-10">
+        <div class="flex items-center gap-3">
+            <span class="text-xl font-serif font-bold">SMK5TEST</span>
+        </div>
+
+        {{-- MENU NAVIGASI --}}
+        <ul class="flex gap-8 text-white/80 font-semibold hidden md:flex mx-auto">
+            <li><a href="{{ route('dashboard') }}" class="text-white hover:text-[#FFE27A] border-b-2 border-white pb-1">Dashboard</a></li>
+            <li><a href="#" class="hover:text-white pb-1 border-b-2 border-transparent">Tes Saya</a></li>
+        </ul>
+
+        {{-- PROFIL & LOGOUT --}}
+        @auth
+        <a href="{{ route('profile.index') }}" class="flex items-center gap-3 ml-auto hover:opacity-90 transition group">
+            <span class="text-white text-base font-semibold hidden sm:block group-hover:text-[#FFE27A] transition">
+                {{ explode(' ', $user->name)[0] }}
+            </span>
+            <div class="w-10 h-10 rounded-full bg-white text-[#0A2A43] flex items-center justify-center font-bold text-lg cursor-pointer overflow-hidden border-2 border-transparent group-hover:border-[#FFE27A] transition">
+                @if($user->profile_photo_path)
+                    <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
+                @else
+                    {{ substr(explode(' ', $user->name)[0], 0, 1) }}
+                @endif
+            </div>
+        </a>
+        @endauth
+    </nav>
+
+    <main class="flex-grow flex items-center justify-center py-10 px-4">
+        <div class="w-full max-w-4xl">
+
+            {{-- TOMBOL KEMBALI --}}
+            <div class="mb-6">
+                <a href="{{ route('dashboard') }}" class="flex items-center text-[#0A2A43] font-semibold hover:text-gray-700 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Kembali
+                </a>
+            </div>
+
+            {{-- KARTU UTAMA --}}
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+
+                {{-- HEADER BIRU --}}
+                <div class="bg-[#0A2A43] text-white p-6 md:p-8">
+                    <h1 class="text-2xl font-bold">Skala Preferensi Belajar</h1>
+                    <p class="text-sm text-white/80 mt-1">Evaluasi kondisi dan cara belajar yang paling efektif untukmu.</p>
+                </div>
+
+                {{-- ISI KARTU --}}
+                <div class="p-8 bg-[#F4F1FF]">
+
+                    {{-- INSTRUKSI --}}
+                    <div class="space-y-4">
+                        <div class="bg-[#E9ECF5] rounded-xl p-5">
+                            <h3 class="font-semibold text-[#0A2A43]">Instruksi Pengerjaan</h3>
+                            <p class="text-gray-700 text-sm">Baca pernyataan dibawah dengan baik dan pilihlah sesuai dengan kondisi kamu yang sebenarnya.</p>
+                        </div>
+
+                        {{-- SKALA PENILAIAN --}}
+                        <div class="mt-4 bg-white rounded-lg p-4 border border-gray-200">
+                            <h4 class="font-medium text-gray-700 mb-3">Skala Penilaian</h4>
+                            <ul class="grid grid-cols-1 sm:grid-cols-5 gap-3 text-center">
+                                <li class="px-3 py-2 rounded-md bg-[#FFF7F7] border border-red-100">
+                                    <span class="block font-semibold text-sm text-red-700">Sangat Tidak Sesuai</span>
+                                    <span class="text-xs text-gray-500">(1)</span>
+                                </li>
+                                <li class="px-3 py-2 rounded-md bg-[#FFF8F0] border border-orange-100">
+                                    <span class="block font-semibold text-sm text-orange-700">Tidak Sesuai</span>
+                                    <span class="text-xs text-gray-500">(2)</span>
+                                </li>
+                                <li class="px-3 py-2 rounded-md bg-[#F4F6F8] border border-gray-100">
+                                    <span class="block font-semibold text-sm text-gray-700">Netral</span>
+                                    <span class="text-xs text-gray-500">(3)</span>
+                                </li>
+                                <li class="px-3 py-2 rounded-md bg-[#F2FFF5] border border-green-100">
+                                    <span class="block font-semibold text-sm text-green-700">Sesuai</span>
+                                    <span class="text-xs text-gray-500">(4)</span>
+                                </li>
+                                <li class="px-3 py-2 rounded-md bg-[#F7FFF7] border border-emerald-100">
+                                    <span class="block font-semibold text-sm text-emerald-700">Sangat Sesuai</span>
+                                    <span class="text-xs text-gray-500">(5)</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    {{-- CHECKBOX PERSETUJUAN --}}
+                    <div class="mt-8">
+                        <label class="flex items-start gap-3 cursor-pointer group">
+                            <div class="relative flex items-start">
+                                <input type="checkbox" class="peer sr-only" id="agreement">
+                                <div class="w-5 h-5 border-2 border-gray-400 rounded bg-white peer-checked:bg-[#0A2A43] peer-checked:border-[#0A2A43] transition"></div>
+                                <svg class="absolute w-3 h-3 text-white hidden peer-checked:block left-1 top-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <span class="text-gray-700 text-sm font-medium group-hover:text-[#0A2A43] transition">
+                                Saya siap mengerjakan tes ini dengan jujur sesuai kondisi sebenarnya.
+                            </span>
+                        </label>
+                    </div>
+
+                    {{-- TOMBOL MULAI --}}
+                    <div class="mt-8 flex justify-center">
+                        <a href="{{ route('skala_preferensi_belajar.form') }}"
+                           class="bg-[#FFE27A] text-[#0A2A43] font-bold px-10 py-3 rounded-xl shadow-md hover:bg-yellow-400 hover:shadow-lg hover:-translate-y-1 transition transform duration-200 flex items-center gap-2">
+                            <span>Mulai</span>
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    {{-- FOOTER --}}
+    <footer class="bg-[#0A2A43] text-white text-center mt-10 py-5 text-sm">
+        Copyright (c) SMKN 5 Malang {{ date('Y') }}. All rights reserved.
+    </footer>
+</body>
+</html>

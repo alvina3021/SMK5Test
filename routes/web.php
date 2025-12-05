@@ -15,6 +15,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AumController;
 use App\Http\Controllers\TesSayaController;
 use App\Http\Controllers\GuruDashboardController;
+use App\Http\Controllers\SkalaPreferensiBelajarController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -195,4 +196,10 @@ Route::middleware(['auth'])->group(function () {
 
     //rute test saya
     Route::get('/tes-saya', [TesSayaController::class, 'index'])->name('tes.saya');
+
+    // Route Skala Preferensi Belajar
+    Route::get('/skala-preferensi', [SkalaPreferensiBelajarController::class, 'index'])->name('skala_preferensi_belajar.index');
+    Route::get('/skala-preferensi/form', [SkalaPreferensiBelajarController::class, 'form'])->name('skala_preferensi_belajar.form');
+    Route::post('/skala-preferensi/store', [SkalaPreferensiBelajarController::class, 'store'])->name('skala_preferensi_belajar.store');
+    Route::get('/skala-preferensi/finish', [SkalaPreferensiBelajarController::class, 'finish'])->name('skala_preferensi_belajar.finish');
 });

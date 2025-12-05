@@ -14,6 +14,7 @@ use App\Models\StudiHabitResult;
 use App\Models\SosialEmosionalResult;
 use App\Models\PreferensiKelompok;
 use App\Models\AumResult;
+use App\Models\SkalaPreferensiBelajar;
 
 class DashboardController extends Controller
 {
@@ -33,6 +34,7 @@ class DashboardController extends Controller
         $statusSosialEmosional = SosialEmosionalResult::where('user_id', $userId)->exists();
         $statusPreferensi      = PreferensiKelompok::where('user_id', $userId)->exists();
         $statusAum             = AumResult::where('user_id', $userId)->exists();
+        $statusSkalaPreferensi = SkalaPreferensiBelajar::where('user_id', $userId)->exists();
 
         // -----------------------------------------------------------
         // BAGIAN 2: AKTIVITAS TERKINI (DINAMIS)
@@ -64,6 +66,7 @@ class DashboardController extends Controller
         $addActivity(SosialEmosionalResult::class, 'Tes Sosial Emosional Selesai', 'Anda telah menyelesaikan asesmen kesehatan mental.');
         $addActivity(PreferensiKelompok::class, 'Tes Preferensi Kelompok Selesai', 'Anda telah menyelesaikan preferensi kerja kelompok.');
         $addActivity(AumResult::class, 'Tes Alat Ungkap Masalah Selesai', 'Anda telah menyelesaikan identifikasi masalah umum.');
+        $addActivity(SkalaPreferensiBelajar::class, 'Tes Skala Preferensi Belajar', 'Anda telah menyelesaikan Skala Preferensi Belajar.');
 
         // Urutkan array berdasarkan 'timestamp' (Terbaru di atas / Descending)
         usort($rawActivities, function ($a, $b) {
@@ -95,6 +98,7 @@ class DashboardController extends Controller
             'statusStudiHabit',
             'statusSosialEmosional',
             'statusPreferensi',
+            'statusSkalaPreferensi',
             'statusAum',
             'aktivitas'
         ));
@@ -107,7 +111,8 @@ class DashboardController extends Controller
             'statusMotivasi',
             'statusStudiHabit',
             'statusSosialEmosional',
-            'statusPreferensi',));
+            'statusPreferensi',
+            'statusSkalaPreferensi'));
     }
 }
 

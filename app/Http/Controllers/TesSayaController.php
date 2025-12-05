@@ -11,6 +11,7 @@ use App\Models\MotivasiBelajarResult;
 use App\Models\StudiHabitResult;
 use App\Models\SosialEmosionalResult;
 use App\Models\PreferensiKelompok;
+use App\Models\SkalaPreferensiBelajar;
 
 class TesSayaController extends Controller
 {
@@ -58,6 +59,11 @@ class TesSayaController extends Controller
         $aum = AumResult::where('user_id', $user->id)->latest()->first();
         $statusAum = $aum ? true : false;
         $tglAum = $aum ? $aum->updated_at->format('d M Y') : '-';
+
+        // --- Skala Preferensi Belajar ---
+        $skalaPreferensi = SkalaPreferensiBelajar::where('user_id', $user->id)->latest()->first();
+        $statusSkalaPreferensi = $skalaPreferensi ? true : false;
+        $tglSkalaPreferensi = $skalaPreferensi ? $skalaPreferensi->updated_at->format('d M Y') : '-';
 
 
         // -----------------------------------------------------------
@@ -129,6 +135,15 @@ class TesSayaController extends Controller
                 'route_result' => route('aum.finish'),
                 'route_start' => route('aum.index'),
                 'date' => $tglAum
+            ],
+            [
+                'title' => 'Skala Preferensi Belajar',
+                'desc' => 'Gaya belajar individu.',
+                'completed' => $statusPreferensi,
+                'icon' => 'skalaPreferensi.svg',
+                'route_result' => route('skala_preferensi_belajar.finish'),
+                'route_start' => route('skala_preferensi_belajar.index'),
+                'date' => $tglPreferensi
             ]
         ];
 

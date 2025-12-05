@@ -169,7 +169,7 @@ class DataPribadiController extends Controller
      */
     public function storeStep3(Request $request)
     {
-        // 1. Validasi Input
+        // 1. Validasi Input (Semua nullable karena opsional)
         $request->validate([
             'nama_wali' => 'nullable|string',
             'alamat_wali' => 'nullable|string',
@@ -179,69 +179,57 @@ class DataPribadiController extends Controller
             'no_hp_wali' => 'nullable|string',
         ]);
 
-        // 2. Data Wali (PERBAIKAN UTAMA)
-        // Gunakan '-' (strip) jika field kosong. Ini mencegah error database jika kolom NOT NULL.
-        // Jika sebelumnya menggunakan '?: null', database akan menolak penyimpanan jika kolomnya wajib diisi.
+        // 2. Data Wali (Gunakan '-' jika kosong, atau biarkan null jika DB support null)
+        // Kita gunakan '-' untuk konsistensi tampilan "Tersimpan tapi kosong"
         $dataWali = [
-            'nama_wali'         => $request->filled('nama_wali') ? $request->nama_wali : '-',
-            'alamat_wali'       => $request->filled('alamat_wali') ? $request->alamat_wali : '-',
-            'pendidikan_wali'   => $request->filled('pendidikan_wali') ? $request->pendidikan_wali : '-',
-            'pekerjaan_wali'    => $request->filled('pekerjaan_wali') ? $request->pekerjaan_wali : '-',
-            'penghasilan_wali'  => $request->filled('penghasilan_wali') ? $request->penghasilan_wali : '-',
-            'no_hp_wali'        => $request->filled('no_hp_wali') ? $request->no_hp_wali : '-',
+            'nama_wali'         => $request->filled('nama_wali') ? $request->nama_wali : null, // Atau '-'
+            'alamat_wali'       => $request->filled('alamat_wali') ? $request->alamat_wali : null,
+            'pendidikan_wali'   => $request->filled('pendidikan_wali') ? $request->pendidikan_wali : null,
+            'pekerjaan_wali'    => $request->filled('pekerjaan_wali') ? $request->pekerjaan_wali : null,
+            'penghasilan_wali'  => $request->filled('penghasilan_wali') ? $request->penghasilan_wali : null,
+            'no_hp_wali'        => $request->filled('no_hp_wali') ? $request->no_hp_wali : null,
         ];
 
-        // 3. Ambil Data Session
+        // 3. Ambil Data Session (Step 1 & 2)
         $sessionStep1 = session()->get('data_pribadi_form', []);
         $sessionStep2 = session()->get('data_pribadi_step2', []);
 
         // 4. Cek Kelengkapan Data Session
-        // Jika session habis (user lompat url), kembalikan ke awal
         if (empty($sessionStep1)) {
              return redirect()->route('data_pribadi.form')
                  ->with('error', 'Sesi data pribadi habis. Mohon isi dari awal.');
         }
 
-        // 5. Gabungkan Data (Merge)
-        // Kita HANYA menggabungkan data dari sesi dan input baru.
+        // 5. Gabungkan Semua Data
         $finalData = array_merge($sessionStep1, $sessionStep2, $dataWali);
-
-        // Pastikan User ID selalu dari Auth
         $finalData['user_id'] = Auth::id();
 
-        // 6. Handle Array JSON (Bantuan Pemerintah)
+        // 6. Handle JSON Array (Bantuan Pemerintah)
         if (!empty($finalData['bantuan_pemerintah'])) {
              if (is_array($finalData['bantuan_pemerintah'])) {
                  $finalData['bantuan_pemerintah'] = json_encode($finalData['bantuan_pemerintah']);
-             }
-             elseif (is_string($finalData['bantuan_pemerintah'])) {
-                 // Cek validitas JSON string
+             } elseif (is_string($finalData['bantuan_pemerintah'])) {
+                 // Pastikan format JSON valid
                  json_decode($finalData['bantuan_pemerintah']);
                  if (json_last_error() !== JSON_ERROR_NONE) {
-                     // Jika bukan JSON valid, bungkus jadi array JSON
                      $finalData['bantuan_pemerintah'] = json_encode([$finalData['bantuan_pemerintah']]);
                  }
              }
         } else {
-             // Pastikan null jika kosong
              $finalData['bantuan_pemerintah'] = null;
         }
 
         try {
             // 7. Simpan ke Database
-            // Gunakan create() agar tersimpan sebagai ENTRY BARU (History)
-            // Ini memungkinkan tes diulang berkali-kali tanpa menimpa data lama.
             SiswaData::create($finalData);
 
-            // 8. Hapus Session agar bersih untuk penggunaan berikutnya
+            // 8. Bersihkan Session
             $request->session()->forget(['data_pribadi_form', 'data_pribadi_step2']);
 
-            // 9. Redirect ke halaman FINISH
+            // 9. Redirect ke Finish
             return redirect()->route('data_pribadi.finish')->with('success', 'Data pribadi Anda berhasil disimpan.');
 
         } catch (\Exception $e) {
-            // Jika error, kembalikan ke form dengan pesan dan input lama
-            // Pesan error ini akan muncul jika penyimpanan gagal
             return back()->with('error', 'Gagal menyimpan: ' . $e->getMessage())->withInput();
         }
     }
@@ -254,15 +242,28 @@ class DataPribadiController extends Controller
     {
         $user = Auth::user();
 
-        // Ambil data TERBARU (latest) untuk ditampilkan di halaman finish
+        // 1. Ambil data TERBARU (latest)
         $dataSiswa = SiswaData::where('user_id', $user->id)->latest()->first();
 
-        // Jika data belum ada, lempar kembali ke form
+        // 2. Jika data belum ada, lempar kembali ke form
         if (!$dataSiswa) {
             return redirect()->route('data_pribadi.form');
         }
 
-        // Tampilkan halaman finish
-        return view('data_pribadi_finish', compact('user', 'dataSiswa'));
+        // 3. Format Ulang Data Bantuan (Decode JSON jika perlu)
+        $bantuan = $dataSiswa->bantuan_pemerintah;
+        // Cek apakah string JSON
+        if (is_string($bantuan) && is_array(json_decode($bantuan, true)) && (json_last_error() == JSON_ERROR_NONE) ) {
+             $bantuan = implode(', ', json_decode($bantuan, true));
+        }
+        // Jika sudah array (karena casting model), implode
+        elseif (is_array($bantuan)) {
+             $bantuan = implode(', ', $bantuan);
+        }
+
+        // Simpan data format siap tampil ke session flash (opsional, bisa langsung via object)
+        // Kita gunakan object $dataSiswa langsung di view agar lebih mudah
+
+        return view('data_pribadi_finish', compact('user', 'dataSiswa', 'bantuan'));
     }
 }

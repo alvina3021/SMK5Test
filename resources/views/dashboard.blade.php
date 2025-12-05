@@ -103,7 +103,7 @@
                         [
                             'title' => 'Skala Preferensi Belajar',
                             'desc' => 'Temukan gaya belajar utama yang paling memengaruhi efektivitas belajarmu.',
-                            'completed' => false,
+                            'completed' => $statusSkalaPreferensi,
                             'icon' => 'skalaPreferensi.svg'
                         ],
                         [
@@ -126,6 +126,7 @@
                         elseif ($card['title'] == 'Sosial Emosional & Kesehatan Mental') $url = route('sosial_emosional.index');
                         elseif ($card['title'] == 'Preferensi Kelompok & Kebutuhan Sosial') $url = route('preferensi_kelompok.index');
                         elseif ($card['title'] == 'Alat Ungkap Masalah') $url = route('aum.index');
+                        elseif ($card['title'] == 'Skala Preferensi Belajar') $url = route('skala_preferensi_belajar.index');
                     @endphp
 
                     <a href="{{ $url }}" class="bg-white shadow rounded-xl p-5 border border-gray-100 transform hover:shadow-lg transition duration-200 cursor-pointer block h-full flex flex-col justify-between group">

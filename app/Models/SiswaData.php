@@ -9,20 +9,20 @@ class SiswaData extends Model
 {
     use HasFactory;
 
-    protected $table = 'siswa_data'; // Sesuaikan dengan nama tabel Anda
+    protected $table = 'siswa_data'; // Pastikan nama tabel sesuai migrasi
 
-    // Gunakan guarded kosong agar SEMUA kolom bisa diisi (Mass Assignment)
+    // Gunakan guarded kosong agar semua kolom bisa diisi (mass assignment)
     protected $guarded = [];
 
-    // Opsi alternatif jika ingin manual (pilih salah satu, tapi guarded lebih mudah)
-    // protected $fillable = [
-    //     'user_id', 'nama_lengkap', 'kelas', 'nama_wali', 'alamat_wali', ...
-    // ];
-
-
     /**
-     * Menghubungkan data siswa ke tabel User (Relasi One-to-One)
+     * Casting tipe data
+     * 'bantuan_pemerintah' -> array (agar otomatis decode JSON)
      */
+    protected $casts = [
+        'bantuan_pemerintah' => 'array',
+        'tanggal_lahir' => 'date',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
