@@ -17,6 +17,8 @@
         {{-- MENU NAVIGASI --}}
         <ul class="flex gap-8 text-white/80 font-semibold hidden md:flex mx-auto">
             <li><a href="{{ route('dashboard') }}" class="text-white hover:text-[#FFE27A] border-b-2 border-white pb-1">Dashboard</a></li>
+
+            {{-- PERBAIKAN: Menambahkan route('tes.saya') pada href --}}
             <li><a href="{{ route('tes.saya') }}" class="hover:text-white pb-1 border-b-2 border-transparent">Tes Saya</a></li>
         </ul>
 
@@ -34,7 +36,7 @@
             <div class="w-10 h-10 rounded-full bg-white text-[#0A2A43] flex items-center justify-center font-bold text-lg cursor-pointer overflow-hidden border-2 border-transparent group-hover:border-[#FFE27A] transition">
                 @if($user->profile_photo_path)
                     {{-- Tampilkan Foto Jika Ada --}}
-                    <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
+                    <img src="{{ asset('public/app/public/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
                 @else
                     {{-- Tampilkan Inisial Jika Tidak Ada Foto --}}
                     {{ substr(explode(' ', $user->name)[0], 0, 1) }}
@@ -87,7 +89,10 @@
                                         <div class="flex items-center h-5">
                                             {{-- Tambahkan class khusus 'cat-{code}' untuk validasi --}}
                                             <input type="checkbox" name="problems[]" value="{{ $item['id'] }}"
-                                                class="problem-checkbox cat-{{ $categoryCode }} w-5 h-5 text-[#0A2A43] border-gray-300 rounded focus:ring-[#FFE27A]">
+    class="problem-checkbox cat-{{ $categoryCode }} w-5 h-5 text-[#0A2A43] border-gray-300 rounded focus:ring-[#FFE27A]"
+    {{-- LOGIKA: Cek apakah ID ada di $currentSelections. Menggunakan ?? [] untuk mencegah error jika variabel null --}}
+    @if(in_array($item['id'], $currentSelections ?? [])) checked @endif
+>
                                         </div>
                                         <div class="text-sm text-gray-700">
                                             <span class="font-bold text-[#0A2A43] mr-1">{{ $item['id'] }}.</span>
@@ -137,6 +142,11 @@
                 countSpan.textContent = document.querySelectorAll('.problem-checkbox:checked').length;
             });
         });
+
+		// Update counter saat halaman pertama kali dimuat (untuk handle tombol Kembali)
+    document.addEventListener("DOMContentLoaded", () => {
+        countSpan.textContent = document.querySelectorAll('.problem-checkbox:checked').length;
+    });
 
         // FUNGSI VALIDASI UTAMA
         function validateAndSubmit() {

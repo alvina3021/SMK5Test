@@ -69,24 +69,37 @@
         ];
     @endphp
 
-    {{-- HEADER --}}
-    <nav class="bg-[#0A2A43] text-white px-10 py-4 flex justify-between items-center shadow-lg sticky top-0 z-20">
+    {{-- HEADER / NAVIGATION BAR --}}
+    <nav class="bg-[#0A2A43] text-white px-10 py-4 flex justify-between items-center shadow-lg sticky top-0 z-10">
         <div class="flex items-center gap-3">
             <span class="text-xl font-serif font-bold">SMK5TEST</span>
         </div>
+
+        {{-- MENU NAVIGASI --}}
         <ul class="flex gap-8 text-white/80 font-semibold hidden md:flex mx-auto">
-            <li><a href="{{ route('dashboard') }}" class="hover:text-white pb-1 border-b-2 border-transparent transition">Dashboard</a></li>
-            <li><a href="{{ route('tes.saya') }}" class="text-white border-b-2 border-white pb-1">Tes Saya</a></li>
+            <li><a href="{{ route('dashboard') }}" class="text-white hover:text-[#FFE27A] border-b-2 border-white pb-1">Dashboard</a></li>
+
+            {{-- PERBAIKAN: Menambahkan route('tes.saya') pada href --}}
+            <li><a href="{{ route('tes.saya') }}" class="hover:text-white pb-1 border-b-2 border-transparent">Tes Saya</a></li>
         </ul>
+
+        {{-- PROFIL & LOGOUT --}}
         @auth
+        {{-- Link ke Halaman Profile --}}
         <a href="{{ route('profile.index') }}" class="flex items-center gap-3 ml-auto hover:opacity-90 transition group">
+
+            {{-- Nama User --}}
             <span class="text-white text-base font-semibold hidden sm:block group-hover:text-[#FFE27A] transition">
                 {{ explode(' ', $user->name)[0] }}
             </span>
+
+            {{-- Avatar User --}}
             <div class="w-10 h-10 rounded-full bg-white text-[#0A2A43] flex items-center justify-center font-bold text-lg cursor-pointer overflow-hidden border-2 border-transparent group-hover:border-[#FFE27A] transition">
                 @if($user->profile_photo_path)
-                    <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
+                    {{-- Tampilkan Foto Jika Ada --}}
+                    <img src="{{ asset('public/app/public/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
                 @else
+                    {{-- Tampilkan Inisial Jika Tidak Ada Foto --}}
                     {{ substr(explode(' ', $user->name)[0], 0, 1) }}
                 @endif
             </div>
@@ -118,45 +131,70 @@
                     </div>
 
                     @foreach($questions as $index => $question)
-                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 transition hover:shadow-md mb-4">
-                        <p class="text-gray-800 font-medium text-lg mb-6">{{ $question['question'] }}</p>
+    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 transition hover:shadow-md mb-4">
+        <p class="text-gray-800 font-medium text-lg mb-6">{{ $question['question'] }}</p>
 
-                        @if($question['type'] == 'radio5')
-                        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0">
-                            <span class="text-xs text-gray-500 font-semibold uppercase tracking-wide w-24 text-center sm:text-left">{{ $question['options'][0] }}</span>
-                            <div class="flex items-center justify-center gap-4 sm:gap-8 w-full sm:w-auto">
-                                {{-- PERBAIKAN 2: Menggunakan count() agar dinamis, tidak hardcode 5 --}}
-                                @for ($i = 0; $i < count($question['options']); $i++)
-                                <label class="cursor-pointer flex flex-col items-center gap-2 radio-option group">
-                                    <span class="text-xs text-gray-400 font-medium mb-1">{{ $i + 1 }}</span>
-                                    <input type="radio" name="{{ $question['name'] }}" value="{{ $question['options'][$i] }}" class="custom-radio-input sr-only" required>
-                                    <div class="w-7 h-7 sm:w-9 sm:h-9 rounded-full border-2 border-gray-300 flex items-center justify-center transition-all duration-200">
-                                        <div class="radio-inner w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-transparent transition-transform duration-200 transform scale-0"></div>
-                                    </div>
-                                </label>
-                                @endfor
-                            </div>
-                            <span class="text-xs text-gray-500 font-semibold uppercase tracking-wide w-24 text-center sm:text-right">{{ end($question['options']) }}</span>
+        {{-- TIPE 1: SKALA 1-5 (Sudah dibahas sebelumnya) --}}
+        @if($question['type'] == 'radio5')
+            {{-- ... (Kode radio5 yang sudah benar) ... --}}
+             <div class="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0">
+                <span class="text-xs text-gray-500 font-semibold uppercase tracking-wide w-24 text-center sm:text-left">{{ $question['options'][0] }}</span>
+                <div class="flex items-center justify-center gap-4 sm:gap-8 w-full sm:w-auto">
+                    @for ($i = 0; $i < count($question['options']); $i++)
+                    <label class="cursor-pointer flex flex-col items-center gap-2 radio-option group">
+                        <span class="text-xs text-gray-400 font-medium mb-1">{{ $i + 1 }}</span>
+                        <input type="radio" 
+                               name="{{ $question['name'] }}" 
+                               value="{{ $question['options'][$i] }}" 
+                               class="custom-radio-input sr-only"
+                               {{-- LOGIKA SESSION --}}
+                               @if(isset($currentSession[$question['name']]) && $currentSession[$question['name']] == $question['options'][$i]) checked @endif
+                               required>
+                        <div class="w-7 h-7 sm:w-9 sm:h-9 rounded-full border-2 border-gray-300 flex items-center justify-center transition-all duration-200">
+                            <div class="radio-inner w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-transparent transition-transform duration-200 transform scale-0"></div>
                         </div>
+                    </label>
+                    @endfor
+                </div>
+                <span class="text-xs text-gray-500 font-semibold uppercase tracking-wide w-24 text-center sm:text-right">{{ end($question['options']) }}</span>
+            </div>
 
-                        @elseif($question['type'] == 'radio2')
-                        <div class="space-y-3">
-                            @foreach($question['options'] as $option)
-                            <label class="cursor-pointer flex items-center gap-3 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
-                                <input type="radio" name="{{ $question['name'] }}" value="{{ $option }}" class="sr-only" required>
-                                <div class="w-5 h-5 border-2 border-gray-400 rounded-full flex items-center justify-center transition-all">
-                                    <div class="w-2.5 h-2.5 rounded-full bg-transparent transition-all"></div>
-                                </div>
-                                <span class="text-gray-700 font-medium">{{ $option }}</span>
-                            </label>
-                            @endforeach
-                        </div>
+        {{-- TIPE 2: RADIO BUTTON BIASA / YES-NO / PILIHAN PANJANG --}}
+        {{-- Menangani: "Apakah Anda terlibat ekskul?", "Apakah lapor bullying?", "Perasaan 2 minggu terakhir" --}}
+        @elseif($question['type'] == 'radio2')
+        <div class="space-y-3">
+            @foreach($question['options'] as $option)
+            <label class="cursor-pointer flex items-center gap-3 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                <input type="radio" 
+                       name="{{ $question['name'] }}" 
+                       value="{{ $option }}" 
+                       class="sr-only"
+                       {{-- LOGIKA: Cek apakah opsi ini sama dengan yang tersimpan di session --}}
+                       @if(isset($currentSession[$question['name']]) && $currentSession[$question['name']] == $option) checked @endif
+                       required>
+                
+                {{-- Styling Radio Button --}}
+                <div class="w-5 h-5 border-2 border-gray-400 rounded-full flex items-center justify-center transition-all">
+                    <div class="w-2.5 h-2.5 rounded-full bg-transparent transition-all"></div>
+                </div>
+                <span class="text-gray-700 font-medium">{{ $option }}</span>
+            </label>
+            @endforeach
+        </div>
 
-                        @elseif($question['type'] == 'text')
-                        <input type="text" name="{{ $question['name'] }}" placeholder="{{ $question['placeholder'] }}" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-[#0A2A43] focus:ring-1 focus:ring-[#0A2A43] transition">
-                        @endif
-                    </div>
-                    @endforeach
+        {{-- TIPE 3: ISIAN TEXT --}}
+        {{-- Menangani: "Jika ya, sebutkan kegiatan..." --}}
+        @elseif($question['type'] == 'text')
+        <input type="text" 
+               name="{{ $question['name'] }}" 
+               {{-- LOGIKA: Isi value dengan data session jika ada --}}
+               value="{{ $currentSession[$question['name']] ?? '' }}"
+               placeholder="{{ $question['placeholder'] }}" 
+               class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-[#0A2A43] focus:ring-1 focus:ring-[#0A2A43] transition">
+        @endif
+        
+    </div>
+    @endforeach
                 @endforeach
 
                 {{-- TOMBOL NAVIGASI --}}

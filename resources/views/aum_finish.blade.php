@@ -8,24 +8,46 @@
 </head>
 <body class="bg-[#F4F1FF] min-h-screen flex flex-col font-sans">
 
-    {{-- HEADER / NAVIGATION BAR (Sama seperti Sosial Emosional Finish) --}}
-    <nav class="bg-[#0A2A43] text-white px-6 md:px-10 py-4 flex justify-between items-center shadow-lg sticky top-0 z-20">
+    {{-- HEADER / NAVIGATION BAR --}}
+    <nav class="bg-[#0A2A43] text-white px-10 py-4 flex justify-between items-center shadow-lg sticky top-0 z-10">
         <div class="flex items-center gap-3">
             <span class="text-xl font-serif font-bold">SMK5TEST</span>
         </div>
+
+        {{-- MENU NAVIGASI --}}
         <ul class="flex gap-8 text-white/80 font-semibold hidden md:flex mx-auto">
-            <li><a href="{{ route('dashboard') }}" class="hover:text-white pb-1 border-b-2 border-transparent transition">Dashboard</a></li>
-            <li><a href="{{ route('tes.saya') }}" class="text-white border-b-2 border-white pb-1">Tes Saya</a></li>
+            {{-- 1. DASHBOARD: DIUBAH MENJADI NON-AKTIF (Border Transparent) --}}
+            <li>
+                <a href="{{ route('dashboard') }}" class="hover:text-white pb-1 border-b-2 border-transparent transition">
+                    Dashboard
+                </a>
+            </li>
+
+            {{-- 2. TES SAYA: DIUBAH MENJADI AKTIF (Border White + Text White + Hover Kuning) --}}
+            <li>
+                <a href="{{ route('tes.saya') }}" class="text-white border-b-2 border-white pb-1 hover:text-[#FFE27A] transition">
+                    Tes Saya
+                </a>
+            </li>
         </ul>
+
+        {{-- PROFIL & LOGOUT --}}
         @auth
+        {{-- Link ke Halaman Profile --}}
         <a href="{{ route('profile.index') }}" class="flex items-center gap-3 ml-auto hover:opacity-90 transition group">
+
+            {{-- Nama User --}}
             <span class="text-white text-base font-semibold hidden sm:block group-hover:text-[#FFE27A] transition">
                 {{ explode(' ', $user->name)[0] }}
             </span>
+
+            {{-- Avatar User --}}
             <div class="w-10 h-10 rounded-full bg-white text-[#0A2A43] flex items-center justify-center font-bold text-lg cursor-pointer overflow-hidden border-2 border-transparent group-hover:border-[#FFE27A] transition">
                 @if($user->profile_photo_path)
-                    <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
+                    {{-- Tampilkan Foto Jika Ada --}}
+                    <img src="{{ asset('public/app/public/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
                 @else
+                    {{-- Tampilkan Inisial Jika Tidak Ada Foto --}}
                     {{ substr(explode(' ', $user->name)[0], 0, 1) }}
                 @endif
             </div>

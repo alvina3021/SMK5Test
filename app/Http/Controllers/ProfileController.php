@@ -4,19 +4,18 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use App\Models\User;
+use App\Models\SiswaData;
+use Illuminate\Support\Facades\File; // Tambahkan ini untuk manajemen file
 
 class ProfileController extends Controller
 {
-    // Menampilkan Halaman Profil
     public function index()
     {
         $user = Auth::user();
         return view('profile', compact('user'));
     }
 
-    // Mengupdate Foto Profil
     public function updatePhoto(Request $request)
     {
         $request->validate([
@@ -26,29 +25,54 @@ class ProfileController extends Controller
         $user = Auth::user();
 
         if ($request->hasFile('photo')) {
-            // Hapus foto lama jika bukan default (opsional, jika Anda menyimpan path default)
-            if ($user->profile_photo_path && Storage::disk('public')->exists($user->profile_photo_path)) {
-                Storage::disk('public')->delete($user->profile_photo_path);
+            $file = $request->file('photo');
+            $filename = time() . '_profil_' . uniqid() . '.' . $file->getClientOriginalExtension();
+
+            // --- LOKASI PENYIMPANAN ---
+            // Kita taruh di public/storage/app/public/uploads/profil
+            // Supaya cocok dengan panggilan asset('storage/app/public/...') di dashboard
+            $destinationPath = public_path('app/public/uploads/profil');
+
+            // Buat folder jika belum ada
+            if (!File::exists($destinationPath)) {
+                File::makeDirectory($destinationPath, 0755, true);
             }
 
-            // Simpan foto baru
-            $path = $request->file('photo')->store('profile-photos', 'public');
+            // --- HAPUS FOTO LAMA ---
+            if ($user->profile_photo_path) {
+                // Path fisik file lama
+                $oldFile = public_path('app/public/' . $user->profile_photo_path);
+                
+                if (File::exists($oldFile)) {
+                    File::delete($oldFile);
+                }
+            }
 
-            // Update database (Pastikan kolom 'profile_photo_path' ada di tabel users atau sesuaikan)
-            // Jika belum ada kolom khusus, kita bisa sementara simpan di kolom lain atau buat migrasi baru.
-            // Di sini saya asumsikan kita update ke tabel User.
-            // *Catatan: Anda mungkin perlu menambahkan 'profile_photo_path' ke fillable di User model.*
+			// --- 3. SIMPAN FOTO BARU ---
+            $file->move($destinationPath, $filename);
 
-            /** @var \App\Models\User $user */
+            // Path yang akan disimpan di Database
+            $dbPath = 'uploads/profil/' . $filename;
+
+            // --- 4. UPDATE TABEL USERS ---
             $user->forceFill([
-                'profile_photo_path' => $path,
+                'profile_photo_path' => $dbPath,
             ])->save();
+
+            // --- 5. SINKRONISASI KE TABEL SISWA_DATA (PENTING) ---
+            // Jika user ini sudah punya data di siswa_data, update juga fotonya disana
+            // agar data form pendaftaran dan data akun tetap sama.
+            $siswaData = SiswaData::where('user_id', $user->id)->first();
+            if ($siswaData) {
+                $siswaData->update([
+                    'foto_profil_path' => $dbPath
+                ]);
+            }
         }
 
         return back()->with('success', 'Foto profil berhasil diperbarui!');
     }
 
-    // Proses Logout
     public function logout(Request $request)
     {
         Auth::logout();

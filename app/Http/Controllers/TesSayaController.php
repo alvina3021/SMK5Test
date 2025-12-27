@@ -96,8 +96,8 @@ class TesSayaController extends Controller
                 'desc' => 'Tingkat dorongan belajar.',
                 'completed' => $statusMotivasi,
                 'icon' => 'motivasi.svg',
-                'route_result' => route('motivasi.finish'),
-                'route_start' => route('motivasi.index'),
+                'route_result' => route('motivasi_belajar.finish'),
+                'route_start' => route('motivasi_belajar.index'),
                 'date' => $tglMotivasi
             ],
             [
@@ -137,13 +137,15 @@ class TesSayaController extends Controller
                 'date' => $tglAum
             ],
             [
-                'title' => 'Skala Preferensi Belajar',
-                'desc' => 'Gaya belajar individu.',
-                'completed' => $statusPreferensi,
-                'icon' => 'skalaPreferensi.svg',
-                'route_result' => route('skala_preferensi_belajar.finish'),
-                'route_start' => route('skala_preferensi_belajar.index'),
-                'date' => $tglPreferensi
+                
+    'title' => 'Skala Preferensi Belajar',
+    'desc' => 'Gaya belajar individu.',
+    'completed' => $statusSkalaPreferensi, // Ubah ke variabel yang benar
+    'icon' => 'skalaPreferensi.svg',
+    'route_result' => route('skala_preferensi_belajar.finish'),
+    'route_start' => route('skala_preferensi_belajar.index'),
+    'date' => $tglSkalaPreferensi // Ubah ke variabel yang benar
+
             ]
         ];
 

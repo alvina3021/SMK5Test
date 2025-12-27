@@ -301,11 +301,15 @@ class AumController extends Controller
     {
         $user = Auth::user();
 
-        // 1. Panggil data dari fungsi private di atas
+        // 1. Panggil data soal
         $categories = $this->getAllQuestions();
 
-        // 2. Kirim ke view menggunakan compact
-        return view('aum_form', compact('user', 'categories'));
+        // 2. [PERBAIKAN UTAMA] Ambil data jawaban dari session
+        // Jika tidak ada (baru mulai), default-nya array kosong []
+        $currentSelections = session('aum_step1_ids', []);
+
+        // 3. Kirim variabel $currentSelections ke view menggunakan compact
+        return view('aum_form', compact('user', 'categories', 'currentSelections'));
     }
 
     /**

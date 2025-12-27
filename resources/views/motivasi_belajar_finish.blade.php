@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Selesai - SMK5TEST</title>
+    <title>Hasil Motivasi Belajar - SMK5TEST</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
-        /* Animasi kustom untuk ikon sukses */
-        @keyframes bounce-slow {
-            0%, 100% { transform: translateY(-5%); }
-            50% { transform: translateY(5%); }
+        @keyframes fade-in-up {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .animate-bounce-slow {
-            animation: bounce-slow 2s infinite;
+        .animate-fade-in-up {
+            animation: fade-in-up 0.8s ease-out forwards;
         }
     </style>
 </head>
@@ -26,8 +25,19 @@
 
         {{-- MENU NAVIGASI --}}
         <ul class="flex gap-8 text-white/80 font-semibold hidden md:flex mx-auto">
-            <li><a href="{{ route('dashboard') }}" class="text-white hover:text-[#FFE27A] border-b-2 border-white pb-1">Dashboard</a></li>
-            <li><a href="#" class="hover:text-white pb-1 border-b-2 border-transparent">Tes Saya</a></li>
+            {{-- 1. DASHBOARD: DIUBAH MENJADI NON-AKTIF (Border Transparent) --}}
+            <li>
+                <a href="{{ route('dashboard') }}" class="hover:text-white pb-1 border-b-2 border-transparent transition">
+                    Dashboard
+                </a>
+            </li>
+
+            {{-- 2. TES SAYA: DIUBAH MENJADI AKTIF (Border White + Text White + Hover Kuning) --}}
+            <li>
+                <a href="{{ route('tes.saya') }}" class="text-white border-b-2 border-white pb-1 hover:text-[#FFE27A] transition">
+                    Tes Saya
+                </a>
+            </li>
         </ul>
 
         {{-- PROFIL & LOGOUT --}}
@@ -44,7 +54,7 @@
             <div class="w-10 h-10 rounded-full bg-white text-[#0A2A43] flex items-center justify-center font-bold text-lg cursor-pointer overflow-hidden border-2 border-transparent group-hover:border-[#FFE27A] transition">
                 @if($user->profile_photo_path)
                     {{-- Tampilkan Foto Jika Ada --}}
-                    <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
+                    <img src="{{ asset('public/app/public/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
                 @else
                     {{-- Tampilkan Inisial Jika Tidak Ada Foto --}}
                     {{ substr(explode(' ', $user->name)[0], 0, 1) }}
@@ -55,46 +65,87 @@
     </nav>
 
     {{-- KONTEN UTAMA --}}
-    <main class="flex-grow flex items-center justify-center py-10 px-4 sm:px-6 lg:px-8">
-        <div class="w-full max-w-lg mx-auto">
+    {{-- MODIFIKASI: Menggunakan max-w-6xl agar lebih lebar & Grid System --}}
+    <main class="grow py-10 px-4 sm:px-6 lg:px-8">
+        
+        {{-- Grid Layout: 1 Kolom di HP, 3 Kolom di Laptop (1 Kiri : 2 Kanan) --}}
+        <div class="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 
-            {{-- KARTU SUKSES --}}
-            <div class="bg-white shadow-2xl rounded-2xl p-8 md:p-12 text-center relative overflow-hidden border-t-8 border-[#0A2A43]">
+            {{-- === KOLOM KIRI (SIDEBAR): HASIL UTAMA === --}}
+            <div class="lg:col-span-1 flex flex-col gap-6 animate-fade-in-up">
 
-                {{-- Hiasan Garis Kuning --}}
-                <div class="absolute top-0 left-0 w-full h-1 bg-[#FFE27A]"></div>
+                {{-- KARTU HASIL --}}
+                <div class="bg-white shadow-xl rounded-2xl p-6 text-center border-t-8 border-[#FFE27A] relative overflow-hidden h-full">
+                    
+                    {{-- Badge di pojok kanan atas --}}
+                    <div class="absolute top-0 right-0 bg-[#FFE27A] text-[#0A2A43] text-xs font-bold px-4 py-1 rounded-bl-xl shadow-sm">
+                        Dominan
+                    </div>
 
-                {{-- Ikon Sukses Animasi --}}
-                <div class="mx-auto flex items-center justify-center h-24 w-24 rounded-full bg-green-50 mb-6 animate-bounce-slow ring-8 ring-green-100/50">
-                    <svg class="h-12 w-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                    </svg>
+                    {{-- Lingkaran Skor (Dibuat Lebih Besar) --}}
+                    <div class="w-32 h-32 mx-auto bg-[#0A2A43] rounded-full flex items-center justify-center text-[#FFE27A] text-5xl font-bold mb-6 shadow-lg border-4 border-white ring-2 ring-[#0A2A43]/20 mt-4">
+                        {{ session('totalScore') }}
+                    </div>
+
+                    <h2 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-2">Tipe Anda</h2>
+                    
+                    {{-- Nama Kategori --}}
+                    <div class="text-2xl font-extrabold text-[#0A2A43] mb-6">
+                        {{ session('kategori') }}
+                    </div>
+
+                    {{-- Deskripsi --}}
+                    <div class="bg-gray-50 rounded-xl p-5 text-left border border-gray-100 shadow-inner">
+                        <p class="text-gray-700 text-sm leading-relaxed italic">
+                            "{{ session('deskripsi') }}"
+                        </p>
+                    </div>
                 </div>
 
-                {{-- Judul --}}
-                <h2 class="text-3xl font-bold text-[#0A2A43] mb-3">Terima Kasih!</h2>
-                <h3 class="text-lg font-semibold text-gray-700 mb-6">Jawaban Anda Berhasil Disimpan</h3>
-
-                {{-- Pesan --}}
-                <p class="text-gray-500 mb-8 leading-relaxed">
-                    Anda telah menyelesaikan Tes Motivasi Belajar.<br>
-                    Sistem kami sedang menganalisis jawaban Anda untuk memberikan rekomendasi motivasi belajar yang personal.
-                </p>
-
-                {{-- Tombol Kembali --}}
-                <a href="{{ route('dashboard') }}" class="inline-flex items-center justify-center gap-2 bg-[#0A2A43] text-white font-bold text-base py-3 px-8 rounded-xl shadow-lg hover:bg-[#143d5e] hover:shadow-xl transform hover:-translate-y-1 transition duration-200 w-full sm:w-auto">
-                    <span>Kembali ke Dashboard</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                    </svg>
+                {{-- TOMBOL KEMBALI (Ditaruh di kiri agar struktur kanan lebih bersih) --}}
+                <a href="{{ route('tes.saya') }}" class="block w-full bg-[#0A2A43] text-white text-center py-4 rounded-xl font-bold hover:bg-[#153e5e] transition shadow-lg transform hover:-translate-y-1">
+                    Kembali ke Tes Saya
                 </a>
-
             </div>
 
-            {{-- Informasi Tambahan Kecil --}}
-            <p class="text-center text-gray-400 text-xs mt-6">
-                Hasil tes dapat dilihat pada menu "Riwayat Tes" di dashboard Anda.
-            </p>
+            {{-- === KOLOM KANAN (MAIN): DETAIL SKOR === --}}
+            <div class="lg:col-span-2 bg-white shadow-xl rounded-2xl p-8 animate-fade-in-up h-full" style="animation-delay: 0.2s;">
+                
+                <h3 class="text-2xl font-bold text-[#0A2A43] mb-8 flex items-center gap-3 border-b pb-4">
+                    <svg class="w-7 h-7 text-[#FFE27A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    Analisis Skor Lengkap
+                </h3>
+
+                <div class="space-y-8">
+                    @php
+                        $scores = session('scoresPerSection', []);
+                        $maxSectionScore = 20; // Sesuaikan dengan nilai max soal
+                    @endphp
+
+                    @foreach($scores as $category => $score)
+                        @php
+                            $percentage = ($score / $maxSectionScore) * 100;
+                            // Logika warna bar sederhana
+                            if($percentage <= 50) $barColor = 'bg-gray-400';
+                            elseif($percentage <= 75) $barColor = 'bg-[#FFE27A]';
+                            else $barColor = 'bg-[#0A2A43]';
+                        @endphp
+
+                        <div>
+                            <div class="flex justify-between items-end mb-2">
+                                <span class="text-[#0A2A43] font-bold text-lg">{{ $category }}</span>
+                                <span class="text-sm font-bold text-gray-600">{{ $score }} <span class="text-xs font-normal text-gray-400">Poin</span></span>
+                            </div>
+                            
+                            {{-- Progress Bar yang lebih modern --}}
+                            <div class="w-full bg-gray-100 rounded-full h-4 overflow-hidden">
+                                <div class="{{ $barColor }} h-4 rounded-full transition-all duration-1000 ease-out shadow-sm" style="width: {{ $percentage }}%">
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
 
         </div>
     </main>

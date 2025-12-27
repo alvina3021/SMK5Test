@@ -54,7 +54,9 @@
         {{-- MENU NAVIGASI --}}
         <ul class="flex gap-8 text-white/80 font-semibold hidden md:flex mx-auto">
             <li><a href="{{ route('dashboard') }}" class="text-white hover:text-[#FFE27A] border-b-2 border-white pb-1">Dashboard</a></li>
-            <li><a href="#" class="hover:text-white pb-1 border-b-2 border-transparent">Tes Saya</a></li>
+
+            {{-- PERBAIKAN: Menambahkan route('tes.saya') pada href --}}
+            <li><a href="{{ route('tes.saya') }}" class="hover:text-white pb-1 border-b-2 border-transparent">Tes Saya</a></li>
         </ul>
 
         {{-- PROFIL & LOGOUT --}}
@@ -71,7 +73,7 @@
             <div class="w-10 h-10 rounded-full bg-white text-[#0A2A43] flex items-center justify-center font-bold text-lg cursor-pointer overflow-hidden border-2 border-transparent group-hover:border-[#FFE27A] transition">
                 @if($user->profile_photo_path)
                     {{-- Tampilkan Foto Jika Ada --}}
-                    <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
+                    <img src="{{ asset('public/app/public/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
                 @else
                     {{-- Tampilkan Inisial Jika Tidak Ada Foto --}}
                     {{ substr(explode(' ', $user->name)[0], 0, 1) }}
@@ -120,12 +122,18 @@
                                 @for ($i = 1; $i <= 5; $i++)
                                 <label class="cursor-pointer flex flex-col items-center gap-2 radio-option group">
                                     <span class="text-xs text-gray-400 font-medium mb-1">{{ $i }}</span>
-                                    <input type="radio"
-                                           {{-- Name dibuat unik berdasarkan kategori & index --}}
-                                           name="ans_{{ Str::slug($categoryTitle) }}_{{ $index }}"
-                                           value="{{ $i }}"
-                                           class="custom-radio-input sr-only"
-                                           required>
+{{-- Buat variabel nama input dulu agar logika @if lebih rapi --}}
+@php
+    $inputName = 'ans_' . Str::slug($categoryTitle) . '_' . $index;
+@endphp
+
+<input type="radio"
+       name="{{ $inputName }}"
+       value="{{ $i }}"
+       class="custom-radio-input sr-only"
+       {{-- LOGIKA BARU: Cek apakah data session ada DAN nilainya sama dengan $i --}}
+       @if(isset($currentSession[$inputName]) && $currentSession[$inputName] == $i) checked @endif
+       required>
 
                                     {{-- Custom Radio Circle --}}
                                     <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-gray-300 flex items-center justify-center transition-all duration-200">

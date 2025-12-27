@@ -67,7 +67,9 @@
         {{-- MENU NAVIGASI --}}
         <ul class="flex gap-8 text-white/80 font-semibold hidden md:flex mx-auto">
             <li><a href="{{ route('dashboard') }}" class="text-white hover:text-[#FFE27A] border-b-2 border-white pb-1">Dashboard</a></li>
-            <li><a href="#" class="hover:text-white pb-1 border-b-2 border-transparent">Tes Saya</a></li>
+
+            {{-- PERBAIKAN: Menambahkan route('tes.saya') pada href --}}
+            <li><a href="{{ route('tes.saya') }}" class="hover:text-white pb-1 border-b-2 border-transparent">Tes Saya</a></li>
         </ul>
 
         {{-- PROFIL & LOGOUT --}}
@@ -84,7 +86,7 @@
             <div class="w-10 h-10 rounded-full bg-white text-[#0A2A43] flex items-center justify-center font-bold text-lg cursor-pointer overflow-hidden border-2 border-transparent group-hover:border-[#FFE27A] transition">
                 @if($user->profile_photo_path)
                     {{-- Tampilkan Foto Jika Ada --}}
-                    <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
+                    <img src="{{ asset('public/app/public/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
                 @else
                     {{-- Tampilkan Inisial Jika Tidak Ada Foto --}}
                     {{ substr(explode(' ', $user->name)[0], 0, 1) }}
@@ -96,7 +98,7 @@
 
     <main class="flex-grow py-8 px-4 sm:px-6 lg:px-8">
         <div class="w-full max-w-3xl mx-auto">
-            <form action="{{ route('motivasi.store') }}" method="POST" class="space-y-6">
+            <form action="{{ route('motivasi_belajar.store') }}" method="POST" class="space-y-6">
                 @csrf
 
                 {{-- JUDUL FORM --}}
@@ -121,7 +123,8 @@
                     @foreach($questions as $index => $question)
                     <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 transition hover:shadow-md mb-4">
                         {{-- Soal --}}
-                        <p class="text-gray-800 font-medium text-lg mb-6">{{ $question }} <span class="text-red-500">*</span></p>
+                        <p class="text-gray-800 font-medium text-lg mb-6"
+                            >{{ $question }} <span class="text-red-500">*</span></p>
 
                         {{-- Skala 1-4 (Sesuai Gambar Soal) --}}
                         <div class="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0">
@@ -157,7 +160,7 @@
 
                 {{-- TOMBOL NAVIGASI --}}
                 <div class="mt-10 flex justify-between gap-4">
-                     <a href="{{ route('motivasi.index') }}" class="w-1/2 text-center bg-gray-200 text-gray-700 font-bold text-lg py-3 px-6 rounded-xl shadow hover:bg-gray-300 transition duration-200">
+                     <a href="{{ route('motivasi_belajar.index') }}" class="w-1/2 text-center bg-gray-200 text-gray-700 font-bold text-lg py-3 px-6 rounded-xl shadow hover:bg-gray-300 transition duration-200">
                         Kembali
                      </a>
 

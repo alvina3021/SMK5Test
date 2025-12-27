@@ -32,9 +32,10 @@
 
             {{-- INPUT USERNAME/NISN --}}
             <div class="mb-5">
+                <label for="password" class="block text-[#001F4C] font-bold text-base mb-2">Username or Email</label>
                 <input type="text" name="identity"
                     class="w-full border border-gray-300 rounded-lg px-4 py-3.5 focus:outline-none focus:border-[#001F4C] focus:ring-1 focus:ring-[#001F4C] transition placeholder-gray-400"
-                    placeholder="Masukkan NISN atau username" required>
+                    placeholder="Masukkan username atau email" required>
             </div>
 
             {{-- INPUT PASSWORD --}}
@@ -56,7 +57,7 @@
                     <input type="checkbox" name="remember" class="w-4 h-4 text-[#001F4C] border-gray-300 rounded focus:ring-[#001F4C]">
                     <span class="ml-2">Ingat Saya</span>
                 </label>
-                <a href="#" class="text-[#001F4C] font-semibold hover:underline">Lupa password?</a>
+                <a href="{{ route('password.request') }}" class="text-[#001F4C] font-semibold hover:underline">Lupa password?</a>
             </div>
 
             {{-- TOMBOL LOGIN --}}

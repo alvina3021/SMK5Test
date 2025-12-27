@@ -17,7 +17,9 @@
         {{-- MENU NAVIGASI --}}
         <ul class="flex gap-8 text-white/80 font-semibold hidden md:flex mx-auto">
             <li><a href="{{ route('dashboard') }}" class="text-white hover:text-[#FFE27A] border-b-2 border-white pb-1">Dashboard</a></li>
-            <li><a href="#" class="hover:text-white pb-1 border-b-2 border-transparent">Tes Saya</a></li>
+
+            {{-- PERBAIKAN: Menambahkan route('tes.saya') pada href --}}
+            <li><a href="{{ route('tes.saya') }}" class="hover:text-white pb-1 border-b-2 border-transparent">Tes Saya</a></li>
         </ul>
 
         {{-- PROFIL & LOGOUT --}}
@@ -34,7 +36,7 @@
             <div class="w-10 h-10 rounded-full bg-white text-[#0A2A43] flex items-center justify-center font-bold text-lg cursor-pointer overflow-hidden border-2 border-transparent group-hover:border-[#FFE27A] transition">
                 @if($user->profile_photo_path)
                     {{-- Tampilkan Foto Jika Ada --}}
-                    <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
+                    <img src="{{ asset('public/app/public/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
                 @else
                     {{-- Tampilkan Inisial Jika Tidak Ada Foto --}}
                     {{ substr(explode(' ', $user->name)[0], 0, 1) }}
@@ -52,7 +54,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
-                    Kembali ke Dashboard
+                    Kembali
                 </a>
             </div>
 
@@ -91,35 +93,24 @@
                     </div>
 
                     {{-- CHECKBOX PERSETUJUAN --}}
-                    <div class="mt-6">
-                        <label class="flex items-start gap-3 cursor-pointer group">
-                            <input type="checkbox" id="agreement" class="mt-1 w-5 h-5 rounded border-gray-400 cursor-pointer accent-[#0A2A43]">
-                            <span class="text-gray-700 text-sm group-hover:text-[#0A2A43] transition">
+                    <div class="mt-8">
+                        <label class="flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox" class="mt-1 w-5 h-5 rounded border-gray-400" id="agreement">
+                            <span class="text-gray-700 text-sm">
                                 Saya mengerti instruksi Langkah Pertama dan siap menandai masalah yang sesuai dengan kondisi saya.
                             </span>
                         </label>
                     </div>
 
                     {{-- TOMBOL LANJUT --}}
+                    {{-- TOMBOL MULAI --}}
                     <div class="mt-8 flex justify-center">
-                        <a href="{{ route('aum.form') }}" onclick="return document.getElementById('agreement').checked"
-                        class="bg-[#FFE27A] text-[#0A2A43] font-bold px-10 py-3 rounded-xl shadow-md hover:bg-yellow-400 transition flex items-center gap-2">
-                             Mulai
-                                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                            </svg>
+                        <a href="{{ route('aum.form') }}"
+                      onclick="if(!document.getElementById('agreement').checked){alert('Silakan centang persetujuan terlebih dahulu.'); return false;}"
+                           class="bg-[#FFE27A] text-[#0A2A43] font-bold px-10 py-3 rounded-xl shadow-md hover:bg-yellow-400 transition">
+                           Mulai
                         </a>
                     </div>
-                    <p class="text-center text-xs text-red-500 mt-2 hidden" id="error-msg">Mohon centang persetujuan di atas.</p>
-
-                    <script>
-                        document.querySelector('a[href="{{ route('aum.form') }}"]').addEventListener('click', function(e){
-                            if(!document.getElementById('agreement').checked) {
-                                e.preventDefault();
-                                document.getElementById('error-msg').classList.remove('hidden');
-                            }
-                        });
-                    </script>
-
                 </div>
             </div>
         </div>

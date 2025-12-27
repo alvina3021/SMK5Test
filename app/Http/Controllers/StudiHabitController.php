@@ -33,7 +33,8 @@ class StudiHabitController extends Controller
     public function form()
     {
         $user = Auth::user();
-        return view('studi_habit_form', compact('user'));
+        $currentSession = session('studi_habit_step1', []);
+		return view('studi_habit_form', compact('user', 'currentSession'));
     }
 
     /**

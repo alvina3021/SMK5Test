@@ -8,7 +8,7 @@
 </head>
 <body class="bg-[#F4F1FF] min-h-screen flex flex-col font-sans">
 
-    {{-- NAVBAR (Sama seperti Dashboard) --}}
+    {{-- NAVBAR --}}
     <nav class="bg-[#0A2A43] text-white px-10 py-4 flex justify-between items-center shadow-lg sticky top-0 z-10">
         <div class="flex items-center gap-3">
             <span class="text-xl font-serif font-bold">SMK5TEST</span>
@@ -25,7 +25,8 @@
             <span class="text-white text-base font-semibold hidden sm:block">{{ explode(' ', $user->name)[0] }}</span>
             <div class="w-10 h-10 rounded-full bg-white text-[#0A2A43] flex items-center justify-center font-bold text-lg cursor-pointer overflow-hidden">
                 @if($user->profile_photo_path)
-                    <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
+                    {{-- PERBAIKAN 1: Path disesuaikan dengan Dashboard --}}
+                    <img src="{{ asset('public/app/public/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
                 @else
                     {{ substr($user->name, 0, 1) }}
                 @endif
@@ -57,10 +58,11 @@
                     {{-- FOTO PROFIL & UPLOAD --}}
                     <div class="flex flex-col items-center mb-8">
                         <div class="relative group w-32 h-32">
-                            {{-- Tampilan Foto --}}
+                            {{-- Tampilan Foto Besar --}}
                             <div class="w-32 h-32 rounded-full bg-gray-200 border-4 border-[#FFE27A] flex items-center justify-center overflow-hidden shadow-md">
                                 @if($user->profile_photo_path)
-                                    <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="Foto Profil" class="w-full h-full object-cover">
+                                    {{-- PERBAIKAN 2: Path disesuaikan dengan Dashboard --}}
+                                    <img src="{{ asset('public/app/public/' . $user->profile_photo_path) }}" alt="Foto Profil" class="w-full h-full object-cover">
                                 @else
                                     <span class="text-4xl font-bold text-gray-400">{{ substr($user->name, 0, 1) }}</span>
                                 @endif
@@ -78,6 +80,7 @@
                         {{-- Form Upload Tersembunyi --}}
                         <form id="photo-form" action="{{ route('profile.updatePhoto') }}" method="POST" enctype="multipart/form-data" class="hidden">
                             @csrf
+                            {{-- onchange akan otomatis mensubmit form saat user memilih file --}}
                             <input type="file" id="photo-upload" name="photo" accept="image/*" onchange="document.getElementById('photo-form').submit();">
                         </form>
                         @error('photo')
@@ -87,7 +90,6 @@
 
                     {{-- INFORMASI DATA DIRI (READONLY) --}}
                     <div class="space-y-5">
-
                         <div>
                             <label class="block text-[#0A2A43] font-bold text-sm mb-2">Nama Lengkap</label>
                             <div class="w-full bg-gray-50 border border-gray-200 text-gray-800 rounded-lg px-4 py-3">
@@ -124,15 +126,10 @@
                                 </div>
                             </div>
                         </div>
-
                     </div>
 
-                    {{-- ACTION BUTTONS (DIUBAH) --}}
-                    <div class="mt-10 flex justify-center"> {{-- Flex container untuk centering --}}
-
-                        {{-- Tombol Kembali DIHAPUS --}}
-
-                        {{-- Tombol Keluar (Merah) - Dibuat lebar penuh untuk mobile, tapi tetap di tengah --}}
+                    {{-- Tombol Keluar --}}
+                    <div class="mt-10 flex justify-center">
                         <form action="{{ route('logout') }}" method="POST" class="w-full md:w-auto">
                             @csrf
                             <button type="submit" class="w-full md:w-64 px-6 py-3 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 shadow-md hover:shadow-lg transition flex items-center justify-center gap-2">
@@ -142,7 +139,6 @@
                                 Keluar
                             </button>
                         </form>
-
                     </div>
 
                 </div>

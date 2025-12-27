@@ -40,7 +40,7 @@
             </span>
             <div class="w-10 h-10 rounded-full bg-white text-[#0A2A43] flex items-center justify-center font-bold text-lg cursor-pointer overflow-hidden border-2 border-transparent group-hover:border-[#FFE27A] transition">
                 @if($user->profile_photo_path)
-                    <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
+                    <img src="{{ asset('public/app/public/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
                 @else
                     {{ substr(explode(' ', $user->name)[0], 0, 1) }}
                 @endif
@@ -76,7 +76,7 @@
                         {{-- Icon (Kiri) --}}
                         <div class="flex-shrink-0">
                             <div class="w-16 h-16 bg-[#F4F1FF] rounded-xl flex items-center justify-center p-3">
-                                <img src="{{ asset('storage/icons/' . $tes['icon']) }}"
+                                <img src="{{ asset('storage/app/public/icons/' . $tes['icon']) }}"
                                      alt="{{ $tes['title'] }}"
                                      class="w-full h-full object-contain opacity-80"
                                      onerror="this.src='https://via.placeholder.com/64?text=Icon'">

@@ -36,7 +36,7 @@
             <div class="w-10 h-10 rounded-full bg-white text-[#0A2A43] flex items-center justify-center font-bold text-lg cursor-pointer overflow-hidden border-2 border-transparent group-hover:border-[#FFE27A] transition">
                 @if($user->profile_photo_path)
                     {{-- Tampilkan Foto Jika Ada --}}
-                    <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
+                    <img src="{{ asset('public/app/public/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
                 @else
                     {{-- Tampilkan Inisial Jika Tidak Ada Foto --}}
                     {{ substr(explode(' ', $user->name)[0], 0, 1) }}
@@ -99,7 +99,6 @@
                             'completed' => $statusPreferensi,
                             'icon' => 'preferensi.svg'
                         ],
-                        // Kartu Dummy (Belum ada Logic Controller)
                         [
                             'title' => 'Skala Preferensi Belajar',
                             'desc' => 'Temukan gaya belajar utama yang paling memengaruhi efektivitas belajarmu.',
@@ -121,7 +120,7 @@
                         $url = '#';
                         if ($card['title'] == 'Data Pribadi Siswa') $url = route('data_pribadi');
                         elseif ($card['title'] == 'RIASEC') $url = route('riasec.index');
-                        elseif ($card['title'] == 'Motivasi Belajar') $url = route('motivasi.index');
+                        elseif ($card['title'] == 'Motivasi Belajar') $url = route('motivasi_belajar.index');
                         elseif ($card['title'] == 'Studi Habit & Gaya Belajar') $url = route('studi_habit.index');
                         elseif ($card['title'] == 'Sosial Emosional & Kesehatan Mental') $url = route('sosial_emosional.index');
                         elseif ($card['title'] == 'Preferensi Kelompok & Kebutuhan Sosial') $url = route('preferensi_kelompok.index');
@@ -134,7 +133,7 @@
                             <div class="flex items-center gap-3 mb-3">
                                 <div class="w-10 h-10 bg-[#d8e4ff] rounded flex items-center justify-center flex-shrink-0 group-hover:bg-[#FFE27A] transition">
                                     {{-- Pastikan file icon ada di public/icons/ --}}
-                                    <img src="{{ asset('storage/icons/' . $card['icon']) }}" alt="{{ $card['title'] }}" class="h-6 w-6 object-contain" />
+                                    <img src="{{ asset('storage/app/public/icons/' . $card['icon']) }}" alt="{{ $card['title'] }}" class="h-6 w-6 object-contain" />
                                 </div>
                                 <h3 class="font-bold text-[17px] text-[#0A2A43] leading-tight">{{ $card['title'] }}</h3>
                             </div>

@@ -114,7 +114,6 @@
                     <input type="checkbox" class="form-checkbox h-4 w-4 text-primary-blue border-gray-300 rounded focus:ring-primary-blue">
                     <span class="ml-2">Ingat Saya</span>
                 </label>
-                <a href="#" class="text-primary-blue hover:underline font-medium">Lupa password?</a>
             </div>
 
             {{-- TOMBOL DAFTAR --}}

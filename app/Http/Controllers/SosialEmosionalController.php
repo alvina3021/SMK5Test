@@ -91,8 +91,9 @@ class SosialEmosionalController extends Controller
     public function form()
     {
         $user = Auth::user();
+        $currentSession = session('sosial_emosional_step1', []);
         // LOGIKA ULANGI TES: Hapus pengecekan exists() agar bisa re-take.
-        return view('sosial_emosional_form', compact('user'));
+		return view('sosial_emosional_form', compact('user', 'currentSession'));
     }
 
     /**

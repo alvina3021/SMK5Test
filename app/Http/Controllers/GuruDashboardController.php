@@ -4,13 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB; 
 use App\Models\User;
+use App\Models\SiswaData;
 
 class GuruDashboardController extends Controller
 {
-    /**
-     * Menampilkan Dashboard Khusus Guru dengan Filter
-     */
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -19,86 +18,107 @@ class GuruDashboardController extends Controller
             return redirect()->route('dashboard')->with('error', 'Akses ditolak.');
         }
 
-        // 1. Ambil Daftar Kelas (Hanya dari siswa yang SUDAH MENGISI tes)
-        // Agar filter kelas tidak menampilkan kelas yang siswanya belum ada yang tes
-        $kelasOptions = User::where('role', 'siswa')
-            ->where(function($q) {
-                $q->has('siswaData')->orHas('riasecResult');
-            })
+        // 1. Ambil Opsi Kelas
+        $kelasOptions = DB::table('siswa_data')
+            ->select('kelas')
             ->whereNotNull('kelas')
             ->distinct()
             ->orderBy('kelas')
             ->pluck('kelas');
 
-        // 2. Query Dasar Siswa
-        $query = User::where('role', 'siswa')
-            // --- FILTER UTAMA: Hanya ambil siswa yang sudah mengisi minimal satu tes ---
-            ->where(function($q) {
-                $q->has('siswaData')       // Sudah isi Data Pribadi
-                  ->orHas('riasecResult'); // ATAU Sudah isi RIASEC
-            })
-            // --------------------------------------------------------------------------
-            ->with([
-                'siswaData' => function($q) { $q->latest(); },
-                'riasecResult' => function($q) { $q->latest(); }
-            ]);
+        // 2. Query Siswa
+        $query = User::where('role', 'siswa');
 
-        // 3. Terapkan Filter Kelas (Jika dipilih)
+        // 3. Filter Kelas
         if ($request->has('kelas') && $request->kelas != '') {
-            $query->where('kelas', $request->kelas);
+            $userIds = DB::table('siswa_data')
+                ->where('kelas', $request->kelas)
+                ->pluck('user_id');
+            $query->whereIn('id', $userIds);
         }
 
         $students = $query->get();
 
-        // 4. Olah Data (Mapping)
+        // 4. Mapping Data
         $rekapSiswa = $students->map(function($student) {
+            
+            // Cek Data Pribadi
+            $cekSiswaData = DB::table('siswa_data')->where('user_id', $student->id)->exists();
+            
+            $dataSiswa = DB::table('siswa_data')->where('user_id', $student->id)->first();
+            $kelas = $dataSiswa ? $dataSiswa->kelas : '-';
+            $nis = $student->nis ?? '-'; 
 
-            // Logic Data Pribadi
-            $dataPribadi = $student->siswaData->first();
-            $statusDP = $dataPribadi ? 'Selesai' : 'Belum';
-            $tanggalDP = $dataPribadi ? $dataPribadi->created_at->format('d M Y') : '-';
+            // DEFINISI TUGAS & URL DETAILNYA
+            // 'table' => Nama tabel di database
+            // 'url_slug' => Bagian dari URL (misal: /guru/hasil-riasec/...)
+            $taskList = [
+                'Data Pribadi Siswa' => [
+                    'table' => 'siswa_data', 
+                    'url_slug' => 'detail-siswa' 
+                ],
+                'RIASEC' => [
+                    'table' => 'riasec_results', 
+                    'url_slug' => 'hasil-riasec' 
+                ],
+                'Motivasi Belajar' => [
+                    'table' => 'motivasi_belajar', 
+                    'url_slug' => 'hasil-motivasi' 
+                ],
+                'Studi Habit & Gaya Belajar' => [
+                    'table' => 'studi_habit', 
+                    'url_slug' => 'hasil-studi-habit' 
+                ],
+                'Sosial Emosional & Kes. Mental' => [
+                    'table' => 'sosial_emosional', 
+                    'url_slug' => 'hasil-sosial-emosional' 
+                ],
+                'Preferensi Kelompok' => [
+                    'table' => 'preferensi_kelompok', 
+                    'url_slug' => 'hasil-preferensi-kelompok' 
+                ],
+                'Skala Preferensi Belajar' => [
+                    'table' => 'skala_preferensi_belajar', 
+                    'url_slug' => 'hasil-skala-preferensi' 
+                ],
+                'Alat Ungkap Masalah (AUM)' => [
+                    'table' => 'aum_results', 
+                    'url_slug' => 'hasil-aum' 
+                ],
+            ];
 
-            // Logic RIASEC
-            $riasec = $student->riasecResult->first();
-            $statusRiasec = $riasec ? 'Selesai' : 'Belum';
-            $hasilRiasec = '-';
+            $detailTugas = [];
+            $jumlahSelesai = 0;
 
-            if ($riasec) {
-                $answers = is_string($riasec->answers) ? json_decode($riasec->answers, true) : $riasec->answers;
-                $scores = ['R' => 0, 'I' => 0, 'A' => 0, 'S' => 0, 'E' => 0, 'C' => 0];
-                if (is_array($answers)) {
-                    foreach ($answers as $key => $val) {
-                        if (array_key_exists($key, $scores) && is_array($val)) {
-                            $scores[$key] = count($val);
-                        } else {
-                            $type = substr($key, 0, 1);
-                            if (array_key_exists($type, $scores)) $scores[$type]++;
-                        }
-                    }
+            foreach ($taskList as $label => $config) {
+                // Cek database
+                $isDone = DB::table($config['table'])->where('user_id', $student->id)->exists();
+                
+                if ($isDone) {
+                    $jumlahSelesai++;
                 }
-                arsort($scores);
-                $topKey = array_key_first($scores);
 
-                $names = [
-                    'R' => 'Realistic', 'I' => 'Investigative', 'A' => 'Artistic',
-                    'S' => 'Social', 'E' => 'Enterprising', 'C' => 'Conventional'
+                $detailTugas[] = [
+                    'label'  => $label,
+                    'status' => $isDone ? 'Sudah Mengerjakan' : 'Belum Mengerjakan',
+                    // Jika sudah selesai, buat URL. Jika belum, URL null.
+                    'url'    => $isDone ? url('guru/' . $config['url_slug'] . '/' . $student->id) : '#',
                 ];
-                $hasilRiasec = $topKey . ' (' . ($names[$topKey] ?? '') . ')';
             }
 
+            // Hitung Persentase
+            $totalTugas = count($taskList);
+            $persentase = $totalTugas > 0 ? round(($jumlahSelesai / $totalTugas) * 100) : 0;
+
             return [
-                'id' => $student->id,
-                'nama' => $student->name,
-                'nis' => $student->nis ?? '-',
-                'kelas' => $student->kelas ?? '-',
-                'data_pribadi' => [
-                    'status' => $statusDP,
-                    'tanggal' => $tanggalDP
-                ],
-                'riasec' => [
-                    'status' => $statusRiasec,
-                    'hasil' => $hasilRiasec
-                ]
+                'id'            => $student->id,
+                'nama'          => $student->name,
+                'nis'           => $nis,
+                'kelas'         => $kelas,
+                'total_selesai' => $jumlahSelesai,
+                'total_tugas'   => $totalTugas,
+                'persentase'    => $persentase,
+                'detail'        => $detailTugas,
             ];
         });
 

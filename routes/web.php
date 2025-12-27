@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\DashboardController;
@@ -40,6 +41,16 @@ Route::get('/login', [LoginController::class, 'index'])->name('login');
 Route::post('/login', [LoginController::class, 'authenticate'])->name('login.authenticate');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout'); // Pastikan method logout ada di LoginController
 
+// --- FORGOT PASSWORD ROUTES ---
+// 1. Halaman Input Email (Lupa Password)
+Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+// 2. Proses Kirim OTP ke Database/Email
+Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+// 3. Halaman Input OTP & Password Baru
+Route::get('/reset-password', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset');
+// 4. Proses Update Password Baru ke Database
+Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'])->name('password.update');
+
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -49,7 +60,6 @@ Route::middleware(['auth'])->group(function () {
         ->name('guru.dashboard');
 });
 
-
 Route::middleware(['auth'])->group(function () {
     // 2. Rute Halaman Instruksi (Menggunakan data_pribadi.blade.php)
     Route::get('/data-pribadi', [DataPribadiController::class, 'instruksi'])->name('data_pribadi');
@@ -58,20 +68,6 @@ Route::middleware(['auth'])->group(function () {
    // Route::get('/data-pribadi/form', [DataPribadiController::class, 'form'])->name('data_pribadi.form');
 
 // STEP 1: DATA DIRI
-        // HALAMAN 1 (Menggunakan /form)
-    //Route::get('/data-pribadi/form', [DataPribadiController::class, 'form'])->name('data_pribadi.form');
-    //Route::post('/data-pribadi/form', [DataPribadiController::class, 'storeForm'])->name('data_pribadi.store_form');
-
-    // STEP 2: DATA ORANG TUA
-    //Route::get('/data-pribadi/step2', [DataPribadiController::class, 'step2'])->name('data_pribadi.step2');
-    //Route::post('/data-pribadi/step2', [DataPribadiController::class, 'storeStep2'])->name('data_pribadi.store_step2');
-
-    // Step 3: Data Wali
-    //Route::get('/data-pribadi/step3', [DataPribadiController::class, 'step3'])->name('data_pribadi.step3');
-    //Route::post('/data-pribadi/step3', [DataPribadiController::class, 'storeStep3'])->name('data_pribadi.store_step3');
-
-    // Route Halaman Selesai
-    //Route::get('/data-pribadi/selesai', [DataPribadiController::class, 'finish'])->name('data_pribadi.finish');
 
     // 1. HALAMAN UTAMA / INSTRUKSI (Ini target redirect 'data_pribadi')
     Route::get('/data-pribadi', [DataPribadiController::class, 'instruksi'])
@@ -94,6 +90,8 @@ Route::middleware(['auth'])->group(function () {
          ->name('data_pribadi.step3');
     Route::post('/data-pribadi/step3', [DataPribadiController::class, 'storeStep3'])
          ->name('data_pribadi.store_step3'); // <--- Ini yang dipanggil form step 3
+    Route::post('/data-pribadi/step3/back', [DataPribadiController::class, 'saveStep3State'])
+         ->name('data_pribadi.step3.back');
 
     // 5. HALAMAN FINISH (Opsional, karena 'instruksi' juga bisa menampilkan finish)
     Route::get('/data-pribadi/finish', [DataPribadiController::class, 'finish'])
@@ -117,16 +115,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/riasec/finish', [RiasecController::class, 'finish'])->name('riasec.finish');
 
     // Halaman Instruksi
-    Route::get('/motivasi-belajar', [MotivasiBelajarController::class, 'index'])->name('motivasi.index');
+    Route::get('/motivasi-belajar', [MotivasiBelajarController::class, 'index'])->name('motivasi_belajar.index');
 
     // Halaman Form Soal
-    Route::get('/motivasi-belajar/tes', [MotivasiBelajarController::class, 'form'])->name('motivasi.form');
+    Route::get('/motivasi-belajar/tes', [MotivasiBelajarController::class, 'form'])->name('motivasi_belajar.form');
 
     // Proses Simpan Data
-    Route::post('/motivasi-belajar/tes', [MotivasiBelajarController::class, 'store'])->name('motivasi.store');
+    Route::post('/motivasi-belajar/tes', [MotivasiBelajarController::class, 'store'])->name('motivasi_belajar.store');
 
     // Halaman Selesai Tes Motivasi Belajar
-    Route::get('/motivasi-belajar/selesai', [MotivasiBelajarController::class, 'finish'])->name('motivasi.finish');
+    Route::get('/motivasi-belajar/selesai', [MotivasiBelajarController::class, 'finish'])->name('motivasi_belajar.finish');
 
     // STUDI HABIT ROUTES
     // Halaman Instruksi

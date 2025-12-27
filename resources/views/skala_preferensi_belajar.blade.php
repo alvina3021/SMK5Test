@@ -17,19 +17,28 @@
         {{-- MENU NAVIGASI --}}
         <ul class="flex gap-8 text-white/80 font-semibold hidden md:flex mx-auto">
             <li><a href="{{ route('dashboard') }}" class="text-white hover:text-[#FFE27A] border-b-2 border-white pb-1">Dashboard</a></li>
-            <li><a href="#" class="hover:text-white pb-1 border-b-2 border-transparent">Tes Saya</a></li>
+
+            {{-- PERBAIKAN: Menambahkan route('tes.saya') pada href --}}
+            <li><a href="{{ route('tes.saya') }}" class="hover:text-white pb-1 border-b-2 border-transparent">Tes Saya</a></li>
         </ul>
 
         {{-- PROFIL & LOGOUT --}}
         @auth
+        {{-- Link ke Halaman Profile --}}
         <a href="{{ route('profile.index') }}" class="flex items-center gap-3 ml-auto hover:opacity-90 transition group">
+
+            {{-- Nama User --}}
             <span class="text-white text-base font-semibold hidden sm:block group-hover:text-[#FFE27A] transition">
                 {{ explode(' ', $user->name)[0] }}
             </span>
+
+            {{-- Avatar User --}}
             <div class="w-10 h-10 rounded-full bg-white text-[#0A2A43] flex items-center justify-center font-bold text-lg cursor-pointer overflow-hidden border-2 border-transparent group-hover:border-[#FFE27A] transition">
                 @if($user->profile_photo_path)
-                    <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
+                    {{-- Tampilkan Foto Jika Ada --}}
+                    <img src="{{ asset('public/app/public/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
                 @else
+                    {{-- Tampilkan Inisial Jika Tidak Ada Foto --}}
                     {{ substr(explode(' ', $user->name)[0], 0, 1) }}
                 @endif
             </div>
@@ -99,13 +108,9 @@
 
                     {{-- CHECKBOX PERSETUJUAN --}}
                     <div class="mt-8">
-                        <label class="flex items-start gap-3 cursor-pointer group">
-                            <div class="relative flex items-start">
-                                <input type="checkbox" class="peer sr-only" id="agreement">
-                                <div class="w-5 h-5 border-2 border-gray-400 rounded bg-white peer-checked:bg-[#0A2A43] peer-checked:border-[#0A2A43] transition"></div>
-                                <svg class="absolute w-3 h-3 text-white hidden peer-checked:block left-1 top-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                            </div>
-                            <span class="text-gray-700 text-sm font-medium group-hover:text-[#0A2A43] transition">
+                        <label class="flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox" class="mt-1 w-5 h-5 rounded border-gray-400" id="agreement">
+                            <span class="text-gray-700 text-sm">
                                 Saya siap mengerjakan tes ini dengan jujur sesuai kondisi sebenarnya.
                             </span>
                         </label>
@@ -113,7 +118,7 @@
 
                     {{-- TOMBOL MULAI --}}
                     <div class="mt-8 flex justify-center">
-                        <a href="{{ route('skala_preferensi_belajar.form') }}"
+                        <a href="{{ route('skala_preferensi_belajar.form') }}" onclick="if(!document.getElementById('agreement').checked){alert('Silakan centang persetujuan terlebih dahulu.'); return false;}"
                            class="bg-[#FFE27A] text-[#0A2A43] font-bold px-10 py-3 rounded-xl shadow-md hover:bg-yellow-400 hover:shadow-lg hover:-translate-y-1 transition transform duration-200 flex items-center gap-2">
                             <span>Mulai</span>
                         </a>

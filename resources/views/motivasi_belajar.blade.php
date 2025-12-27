@@ -18,7 +18,9 @@
         {{-- MENU NAVIGASI --}}
         <ul class="flex gap-8 text-white/80 font-semibold hidden md:flex mx-auto">
             <li><a href="{{ route('dashboard') }}" class="text-white hover:text-[#FFE27A] border-b-2 border-white pb-1">Dashboard</a></li>
-            <li><a href="#" class="hover:text-white pb-1 border-b-2 border-transparent">Tes Saya</a></li>
+
+            {{-- PERBAIKAN: Menambahkan route('tes.saya') pada href --}}
+            <li><a href="{{ route('tes.saya') }}" class="hover:text-white pb-1 border-b-2 border-transparent">Tes Saya</a></li>
         </ul>
 
         {{-- PROFIL & LOGOUT --}}
@@ -35,7 +37,7 @@
             <div class="w-10 h-10 rounded-full bg-white text-[#0A2A43] flex items-center justify-center font-bold text-lg cursor-pointer overflow-hidden border-2 border-transparent group-hover:border-[#FFE27A] transition">
                 @if($user->profile_photo_path)
                     {{-- Tampilkan Foto Jika Ada --}}
-                    <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
+                    <img src="{{ asset('public/app/public/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
                 @else
                     {{-- Tampilkan Inisial Jika Tidak Ada Foto --}}
                     {{ substr(explode(' ', $user->name)[0], 0, 1) }}
@@ -118,19 +120,20 @@
                     </div>
 
                     {{-- CHECKBOX PERSETUJUAN --}}
-                    <div class="mt-8 bg-white p-4 rounded-lg border border-gray-100">
-                        <label class="flex items-start gap-3 cursor-pointer group">
-                            <input type="checkbox" class="mt-1 w-5 h-5 rounded border-gray-300 text-[#0A2A43] focus:ring-[#0A2A43] cursor-pointer" id="agreement">
-                            <span class="text-gray-700 text-sm group-hover:text-black transition">
+                    <div class="mt-8">
+                        <label class="flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox" class="mt-1 w-5 h-5 rounded border-gray-400" id="agreement">
+                            <span class="text-gray-700 text-sm">
                                 Saya telah membaca petunjuk dan siap mengerjakan tes ini dengan jujur sesuai kondisi saya saat ini.
                             </span>
+                     
                         </label>
                     </div>
 
                     {{-- TOMBOL MULAI --}}
                     <div class="mt-8 flex justify-center">
-                        {{-- Ganti route('motivasi.form') sesuai nama route yang Anda buat nanti --}}
-                        <a href="{{ route('motivasi.form') }}"
+                        {{-- Ganti route('motivasi_belajar.form') sesuai nama route yang Anda buat nanti --}}
+                        <a href="{{ route('motivasi_belajar.form') }}"
                             onclick="if(!document.getElementById('agreement').checked){alert('Silakan centang persetujuan terlebih dahulu.'); return false;}"
                             class="bg-[#FFE27A] text-[#0A2A43] font-bold px-10 py-3 rounded-xl shadow-md hover:bg-yellow-400 transition">
                                 Mulai

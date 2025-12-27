@@ -22,24 +22,46 @@
 </head>
 <body class="bg-[#F4F1FF] min-h-screen flex flex-col font-sans">
 
-    {{-- HEADER --}}
-    <nav class="bg-[#0A2A43] text-white px-6 md:px-10 py-4 flex justify-between items-center shadow-lg sticky top-0 z-20">
+    {{-- HEADER / NAVIGATION BAR --}}
+    <nav class="bg-[#0A2A43] text-white px-10 py-4 flex justify-between items-center shadow-lg sticky top-0 z-10">
         <div class="flex items-center gap-3">
             <span class="text-xl font-serif font-bold">SMK5TEST</span>
         </div>
+
+        {{-- MENU NAVIGASI --}}
         <ul class="flex gap-8 text-white/80 font-semibold hidden md:flex mx-auto">
-            <li><a href="{{ route('dashboard') }}" class="hover:text-white pb-1 border-b-2 border-transparent transition">Dashboard</a></li>
-            <li><a href="{{ route('tes.saya') }}" class="text-white border-b-2 border-white pb-1">Tes Saya</a></li>
+            {{-- 1. DASHBOARD: DIUBAH MENJADI NON-AKTIF (Border Transparent) --}}
+            <li>
+                <a href="{{ route('dashboard') }}" class="hover:text-white pb-1 border-b-2 border-transparent transition">
+                    Dashboard
+                </a>
+            </li>
+
+            {{-- 2. TES SAYA: DIUBAH MENJADI AKTIF (Border White + Text White + Hover Kuning) --}}
+            <li>
+                <a href="{{ route('tes.saya') }}" class="text-white border-b-2 border-white pb-1 hover:text-[#FFE27A] transition">
+                    Tes Saya
+                </a>
+            </li>
         </ul>
+
+        {{-- PROFIL & LOGOUT --}}
         @auth
+        {{-- Link ke Halaman Profile --}}
         <a href="{{ route('profile.index') }}" class="flex items-center gap-3 ml-auto hover:opacity-90 transition group">
+
+            {{-- Nama User --}}
             <span class="text-white text-base font-semibold hidden sm:block group-hover:text-[#FFE27A] transition">
                 {{ explode(' ', $user->name)[0] }}
             </span>
+
+            {{-- Avatar User --}}
             <div class="w-10 h-10 rounded-full bg-white text-[#0A2A43] flex items-center justify-center font-bold text-lg cursor-pointer overflow-hidden border-2 border-transparent group-hover:border-[#FFE27A] transition">
                 @if($user->profile_photo_path)
-                    <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
+                    {{-- Tampilkan Foto Jika Ada --}}
+                    <img src="{{ asset('public/app/public/' . $user->profile_photo_path) }}" alt="Profil" class="w-full h-full object-cover">
                 @else
+                    {{-- Tampilkan Inisial Jika Tidak Ada Foto --}}
                     {{ substr(explode(' ', $user->name)[0], 0, 1) }}
                 @endif
             </div>
@@ -61,8 +83,8 @@
                     </div>
 
                     <div class="w-32 h-32 mx-auto bg-gray-200 rounded-full p-1 border-4 border-[#0A2A43] overflow-hidden mb-4 shadow-lg group relative">
-                        @if(isset($dataSiswa->foto_profil) && $dataSiswa->foto_profil)
-                            <img src="{{ asset('storage/' . $dataSiswa->foto_profil) }}" class="w-full h-full object-cover rounded-full transition transform group-hover:scale-105">
+                        @if(isset($dataSiswa->foto_profil_path) && $dataSiswa->foto_profil_path)
+                            <img src="{{ asset('public/app/public/' . $dataSiswa->foto_profil_path) }}" class="w-full h-full object-cover rounded-full transition transform group-hover:scale-105">
                         @else
                             <div class="w-full h-full flex items-center justify-center text-4xl font-bold text-gray-400 bg-gray-100">
                                 {{ substr($user->name, 0, 1) }}
@@ -127,9 +149,8 @@
                         <svg class="w-6 h-6 text-[#FFE27A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
                         Rincian Data Lengkap
                     </h3>
-                    <a href="{{ route('tes.saya') }}" class="bg-gray-100 text-gray-600 text-sm px-4 py-2 rounded-lg hover:bg-gray-200 transition flex items-center justify-center gap-2 font-semibold">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                        Kembali ke Menu
+                    <a href="{{ route('tes.saya') }}" class="flex items-center gap-2 bg-[#0A2A43] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#153e5e] transition shadow-lg">
+                        Kembali ke Tes Saya
                     </a>
                 </div>
 
@@ -190,11 +211,11 @@
                                 </div>
                             </div>
 
-                            @if(isset($dataSiswa->foto_kartu_bantuan) && $dataSiswa->foto_kartu_bantuan)
+                            @if(isset($dataSiswa->foto_kartu_bantuan_path) && $dataSiswa->foto_kartu_bantuan_path)
                                 <div class="mt-4 pt-4 border-t border-blue-200">
                                     <span class="text-xs text-blue-600 font-bold uppercase block mb-2">Bukti Kartu Bantuan</span>
                                     <div class="w-full max-w-xs h-32 bg-gray-200 rounded-lg overflow-hidden border border-gray-300">
-                                        <img src="{{ asset('storage/' . $dataSiswa->foto_kartu_bantuan) }}" class="w-full h-full object-cover cursor-pointer hover:scale-105 transition" onclick="window.open(this.src)">
+                                        <img src="{{ asset('public/app/public/' . $dataSiswa->foto_kartu_bantuan_path) }}" class="w-full h-full object-cover cursor-pointer hover:scale-105 transition" onclick="window.open(this.src)">
                                     </div>
                                     <p class="text-[10px] text-blue-400 mt-1">*Klik gambar untuk memperbesar</p>
                                 </div>
