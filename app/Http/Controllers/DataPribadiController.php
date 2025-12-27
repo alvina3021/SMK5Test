@@ -25,12 +25,14 @@ class DataPribadiController extends Controller
         $user = Auth::user();
         $dataSiswa = null;
 
+        // Hanya ambil data dari session jika sedang dalam proses isi form
+        // Jangan ambil dari database untuk mencegah tampilnya data lama saat mulai ulang
         if (session()->has('data_pribadi_form')) {
             // Ubah array session jadi object agar bisa dibaca blade sebagai $dataSiswa->property
             $dataSiswa = (object) session('data_pribadi_form');
-        } elseif (SiswaData::where('user_id',$user->id)->exists()) {
-            $dataSiswa = SiswaData::where('user_id',$user->id)->latest()->first();
         }
+        // DIHAPUS: Jangan ambil data dari database di halaman form
+        // karena user ingin mulai fresh, bukan melanjutkan data lama
 
         return view('data_pribadi_form',compact('user','dataSiswa'));
     }
@@ -117,7 +119,7 @@ class DataPribadiController extends Controller
     {
         $user = Auth::user();
         if (!session()->has('data_pribadi_form')) {
-            return redirect()->route('data_pribadi.form');
+            return redirect()->route('data_pribadi.form')->with('error','Silakan isi data pribadi terlebih dahulu.');
         }
 
         $dataSiswa = null;
@@ -155,8 +157,8 @@ class DataPribadiController extends Controller
     public function step3()
     {
         $user = Auth::user();
-        if (!session()->has('data_pribadi_step2')) {
-            return redirect()->route('data_pribadi.step2');
+        if (!session()->has('data_pribadi_form') || !session()->has('data_pribadi_step2')) {
+            return redirect()->route('data_pribadi.form')->with('error','Sesi telah berakhir. Silakan mulai dari awal.');
         }
 
         $defaultValues = [
@@ -200,17 +202,18 @@ class DataPribadiController extends Controller
 
         // UPDATE TABEL USERS (Avatar Navbar)
         if (!empty($finalData['foto_profil_path'])) {
-            $user = Auth::user();
-
-            if ($user->profile_photo_path && $user->profile_photo_path !== $finalData['foto_profil_path']) {
-                $oldFile = public_path('storage/app/public/'.$user->profile_photo_path);
-                if (File::exists($oldFile)) {
-                    File::delete($oldFile);
+            $userModel = \App\Models\User::find(Auth::id());
+            if ($userModel) {
+                if ($userModel->profile_photo_path && $userModel->profile_photo_path !== $finalData['foto_profil_path']) {
+                    $oldFile = public_path('storage/app/public/'.$userModel->profile_photo_path);
+                    if (File::exists($oldFile)) {
+                        File::delete($oldFile);
+                    }
                 }
-            }
 
-            $user->profile_photo_path = $finalData['foto_profil_path'];
-            $user->save();
+                $userModel->profile_photo_path = $finalData['foto_profil_path'];
+                $userModel->save();
+            }
         }
 
         try {
